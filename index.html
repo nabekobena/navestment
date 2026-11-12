@@ -97,7 +97,7 @@ main.gut{padding-block:6px 44px}
   function hm(ts){ try{ return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(ts)); }catch(e){ return '—'; } }
   function render(S){
     var C=(S.cards||[]).filter(function(c){return Array.isArray(c)&&c.length>=5&&WORD[c[2]];}), n={g:0,y:0,r:0,x:0}, by={};
-    C=C.map(function(c){ var d=c.slice(); d[0]=RENUM[c[0]]||c[0]; return d; }); C.forEach(function(c){ n[c[2]]++; by[c[0]]=c; });
+    if(S.num!==2){ C=C.map(function(c){ var d=c.slice(); d[0]=RENUM[c[0]]||c[0]; return d; }); }   // PC が新しい番号（num:2）で書くようになったら、読みかえない C.forEach(function(c){ n[c[2]]++; by[c[0]]=c; });
     var tot=Math.max(1,C.length), circ=2*Math.PI*46;
     $('arc').setAttribute('stroke-dasharray',(circ*n.g/tot).toFixed(1)+' '+circ.toFixed(1));
     $('n-run').textContent=n.g; $('n-tot').textContent='/ '+C.length+' RUNNING';
