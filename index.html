@@ -87,8 +87,8 @@ main.gut{padding-block:6px 44px}
     kurashi:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'};
   var GROUPS=[['kurashi','LIFE & WATCH',[1,2,3]],['jra','JRA',[4,5,6]],['chihou','NAR',[7,8,9]],['hasshin','MEDIA',[10,11,12]],['toushi','INVEST & DATA',[13,14,15]]];
   // 11/12 社長：日報・TCG・見張り番を 1,2,3 に。判定とオッズ保存は場所と番号を入れかえ。題名は全部英語（PC が書く古い番号を、ここで新しい番号に読みかえる）
-  var RENUM={7:1,14:2,15:3,1:4,5:5,3:6,2:7,6:8,4:9,8:10,9:11,10:12,11:13,12:14,13:15};
-  var NAME={1:'Daily Report',2:'TCG',3:'Watchdog',4:'JRA Auto Bet',5:'JRA Judge',6:'JRA Odds',7:'NAR Auto Bet',8:'NAR Judge',9:'NAR Odds',10:'YouTube',11:'note',12:'Video Production',13:'FX',14:'CFD',15:'netkeiba'};
+  var RENUM={7:1,14:2,15:3,1:4,5:5,3:6,2:7,6:8,4:9,8:10,10:11,9:12,11:13,12:14,13:15};
+  var NAME={1:'Daily Report',2:'TCG',3:'Watchdog',4:'JRA Auto Bet',5:'JRA Judge',6:'JRA Odds',7:'NAR Auto Bet',8:'NAR Judge',9:'NAR Odds',10:'YouTube',11:'Video Production',12:'note',13:'FX',14:'CFD',15:'netkeiba'};
   var BOARD={2:['Lottery Board','https://claude.ai/artifact/1PyyoRYSXoJ1S8VzQNhRmb'],4:['Vote Board',''],7:['Vote Board',''],5:['EV Board',''],8:['EV Board','']};
   var WORD={g:'RUNNING',y:'STANDBY',r:'STOPPED',x:'NOT YET'};
   var $=function(id){return document.getElementById(id)}, last=null;
@@ -113,7 +113,7 @@ main.gut{padding-block:6px 44px}
       var grid=el('div','grid');
       G[2].forEach(function(no){ var c=by[no]; if(!c) return; var card=el('article','c '+c[2]), top=el('div','top');
         top.appendChild(el('span','no',('0'+c[0]).slice(-2))); top.appendChild(el('span','nm',NAME[c[0]]||String(c[1]))); top.appendChild(el('span','chip',WORD[c[2]]));
-        card.appendChild(top); card.appendChild(el('div','tag',String(c[3]))); card.appendChild(el('div','st',String(c[4])));
+        card.appendChild(top); card.appendChild(el('div','tag',String(c[3]))); card.appendChild(el('div','st',String(c[4]).replace('20:21','21:00')));
         var B=BOARD[c[0]]; if(B){ var bt; if(B[1]){ bt=el('a','bd',B[0]+' ›'); bt.href=B[1]; bt.target='_blank'; bt.rel='noopener'; } else { bt=el('span','bd off',B[0]+' · COMING SOON'); } card.appendChild(bt); }
         grid.appendChild(card); });
       sec.appendChild(grid); g.appendChild(sec);
