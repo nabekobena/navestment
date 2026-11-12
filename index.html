@@ -52,6 +52,9 @@ main.gut{padding-block:6px 44px}
 .nm{font-size:17px;font-weight:800;flex:1;min-width:0;overflow-wrap:anywhere}
 .chip{font-size:10px;letter-spacing:.06em;font-weight:800;border-radius:999px;padding:2px 9px;white-space:nowrap;color:var(--chipink)}.c.g .chip{background:var(--g)}.c.y .chip{background:var(--y)}.c.r .chip{background:var(--r)}.c.x .chip{background:var(--x)}
 .tag{font-size:11px;color:var(--sub)}.st{font-size:13px;overflow-wrap:anywhere}
+.bd{align-self:flex-start;margin-top:4px;display:inline-flex;align-items:center;min-height:36px;padding:0 13px;border-radius:999px;background:var(--head);color:var(--headink);font-weight:800;font-size:12px;letter-spacing:.05em;text-decoration:none;border:1px solid var(--gold)}
+.bd.off{background:transparent;color:var(--sub);border:1px dashed var(--line);font-weight:700}
+.grp h2{letter-spacing:.06em}
 .empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:22px 16px;color:var(--sub);text-align:center;margin-top:20px}
 .btn{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:700;font-size:14px;text-decoration:none;cursor:pointer}
 .btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
@@ -71,7 +74,7 @@ main.gut{padding-block:6px 44px}
 <main class="gut">
   <div id="groups"><div class="empty" id="empty">読みこみ中…</div></div>
   <div class="foot"><div id="upd"></div>
-    <div class="row"><button class="btn" id="reload" type="button">いま読み直す</button><a class="btn" href="https://claude.ai/artifact/1PyyoRYSXoJ1S8VzQNhRmb" target="_blank" rel="noopener">トレカ抽選ボードを開く</a></div>
+    <div class="row"><button class="btn" id="reload" type="button">いま読み直す</button></div>
     <div>この画面からは何も動かせません（見るだけ）。お金の額・口座番号は出しません。1分ごとに読み直します。</div></div>
 </main>
 <script>
@@ -82,8 +85,11 @@ main.gut{padding-block:6px 44px}
     hasshin:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4l9 4V6z"/><path d="M13 9c2 0 3 1.2 3 3s-1 3-3 3"/><path d="M18 6c2 1.5 3 3.5 3 6s-1 4.5-3 6"/></svg>',
     toushi:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M5 16l4-5 4 3 6-8"/><path d="M15 6h4v4"/></svg>',
     kurashi:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'};
-  var GROUPS=[['kurashi','くらしと見張り','日報・トレカ抽選・見張り番',[1,2,3]],['jra','JRA','買う・オッズを残す・判定する',[4,5,6]],['chihou','地方競馬','買う・オッズを残す・判定する',[7,8,9]],['hasshin','発信','YouTube・note・動画',[10,11,12]],['toushi','投資とデータ','FX・CFD・netkeiba',[13,14,15]]];
-  var RENUM={7:1,14:2,15:3,1:4,3:5,5:6,2:7,4:8,6:9,8:10,9:11,10:12,11:13,12:14,13:15};   // 11/12 社長：日報・トレカ抽選・見張り番を 1,2,3 に。あとは番号順（PC が書く番号を、ここで新しい番号に読みかえる）
+  var GROUPS=[['kurashi','LIFE & WATCH',[1,2,3]],['jra','JRA',[4,5,6]],['chihou','NAR',[7,8,9]],['hasshin','MEDIA',[10,11,12]],['toushi','INVEST & DATA',[13,14,15]]];
+  // 11/12 社長：日報・TCG・見張り番を 1,2,3 に。判定とオッズ保存は場所と番号を入れかえ。題名は全部英語（PC が書く古い番号を、ここで新しい番号に読みかえる）
+  var RENUM={7:1,14:2,15:3,1:4,5:5,3:6,2:7,6:8,4:9,8:10,9:11,10:12,11:13,12:14,13:15};
+  var NAME={1:'Daily Report',2:'TCG',3:'Watchdog',4:'JRA Auto Bet',5:'JRA Judge',6:'JRA Odds',7:'NAR Auto Bet',8:'NAR Judge',9:'NAR Odds',10:'YouTube',11:'note',12:'Video Production',13:'FX',14:'CFD',15:'netkeiba'};
+  var BOARD={2:['Lottery Board','https://claude.ai/artifact/1PyyoRYSXoJ1S8VzQNhRmb'],4:['Vote Board',''],7:['Vote Board',''],5:['EV Board',''],8:['EV Board','']};
   var WORD={g:'RUNNING',y:'STANDBY',r:'STOPPED',x:'NOT YET'};
   var $=function(id){return document.getElementById(id)}, last=null;
   function el(t,c,x){var e=document.createElement(t); if(c) e.className=c; if(x!=null) e.textContent=x; return e;}
@@ -98,16 +104,18 @@ main.gut{padding-block:6px 44px}
     ['g','y','r','x'].forEach(function(k){ $('s-'+k).textContent=n[k]; });
     var bar=$('bar'); bar.textContent=''; ['g','y','r','x'].forEach(function(k){ var i=el('i',k); i.style.width=(100*n[k]/tot).toFixed(2)+'%'; bar.appendChild(i); });
     var red=C.filter(function(c){return c[2]==='r'});
-    $('alert').hidden=!red.length; $('alert-t').textContent=red.length?'止まっている物があります：'+red.map(function(c){return ('0'+c[0]).slice(-2)+' '+c[1]}).join('・'):'';
+    $('alert').hidden=!red.length; $('alert-t').textContent=red.length?'止まっている物があります：'+red.map(function(c){return ('0'+c[0]).slice(-2)+' '+(NAME[c[0]]||c[1])}).join('・'):'';
     var age=(Date.now()-new Date(S.ts).getTime())/60000;
     $('stale').hidden=!(age>5); $('stale-t').textContent=age>5?'PC からの印が '+Math.round(age)+' 分前で止まっています（最後 '+hm(S.ts)+'）。PC が眠った・再起動した・通信が切れた、のどれかの見込みです。':'';
     var g=$('groups'); g.textContent='';
     GROUPS.forEach(function(G){
-      var sec=el('section','grp '+G[0]), h=el('h2'), ic=el('span','ic'); ic.innerHTML=ICON[G[0]]; h.appendChild(ic); h.appendChild(document.createTextNode(G[1])); h.appendChild(el('small',null,G[2])); sec.appendChild(h);
+      var sec=el('section','grp '+G[0]), h=el('h2'), ic=el('span','ic'); ic.innerHTML=ICON[G[0]]; h.appendChild(ic); h.appendChild(document.createTextNode(G[1])); sec.appendChild(h);
       var grid=el('div','grid');
-      G[3].forEach(function(no){ var c=by[no]; if(!c) return; var card=el('article','c '+c[2]), top=el('div','top');
-        top.appendChild(el('span','no',('0'+c[0]).slice(-2))); top.appendChild(el('span','nm',String(c[1]))); top.appendChild(el('span','chip',WORD[c[2]]));
-        card.appendChild(top); card.appendChild(el('div','tag',String(c[3]))); card.appendChild(el('div','st',String(c[4]))); grid.appendChild(card); });
+      G[2].forEach(function(no){ var c=by[no]; if(!c) return; var card=el('article','c '+c[2]), top=el('div','top');
+        top.appendChild(el('span','no',('0'+c[0]).slice(-2))); top.appendChild(el('span','nm',NAME[c[0]]||String(c[1]))); top.appendChild(el('span','chip',WORD[c[2]]));
+        card.appendChild(top); card.appendChild(el('div','tag',String(c[3]))); card.appendChild(el('div','st',String(c[4])));
+        var B=BOARD[c[0]]; if(B){ var bt; if(B[1]){ bt=el('a','bd',B[0]+' ›'); bt.href=B[1]; bt.target='_blank'; bt.rel='noopener'; } else { bt=el('span','bd off',B[0]+' · COMING SOON'); } card.appendChild(bt); }
+        grid.appendChild(card); });
       sec.appendChild(grid); g.appendChild(sec);
     });
     $('upd').textContent='PC が書いた時刻 '+hm(S.ts)+'　判定ソフト '+(S.nar_ver||'—')+'　PC が再起動しても自動で立ち上がる：'+(S.autostart?'入っています':'まだ');
