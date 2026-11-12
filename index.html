@@ -37,6 +37,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15p
 .bar i{display:block;height:100%}.bar .g{background:var(--g)}.bar .y{background:var(--y)}.bar .r{background:var(--r)}.bar .x{background:rgba(255,255,255,.28)}
 .sum{letter-spacing:.04em;display:flex;gap:6px 14px;flex-wrap:wrap;margin-top:8px;font-size:13px}.sum b{font-size:17px;margin-left:4px;font-variant-numeric:tabular-nums}
 .sum .d{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.rl{float:right;margin:-44px 0 0 0;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--gold);background:var(--gold);color:var(--head);font:inherit;font-weight:800;font-size:13px;cursor:pointer}.rl:disabled{opacity:.6}
+@media (max-width:520px){.rl{float:none;margin:10px 0 0 0;display:inline-flex;align-items:center}}
 .alert{background:var(--r);color:var(--chipink);font-weight:700;font-size:14px}.alert .gut{padding-block:9px}
 .stale{background:var(--y);color:var(--chipink);font-weight:700;font-size:14px}.stale .gut{padding-block:9px}
 main.gut{padding-block:6px 44px}
@@ -65,7 +67,7 @@ main.gut{padding-block:6px 44px}
 <header class="hero"><div class="gut">
   <div class="ring"><svg viewBox="0 0 108 108" aria-hidden="true"><circle cx="54" cy="54" r="46" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="10"/><circle id="arc" cx="54" cy="54" r="46" fill="none" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 289"/></svg><div class="n"><b id="n-run">–</b><span id="n-tot">RUNNING</span></div></div>
   <div class="ttl"><h1>Na<i>vest</i>ment</h1>
-    <div class="bar" id="bar"></div>
+    <div class="bar" id="bar"></div><button class="rl" id="reload2" type="button">更新</button>
     <div class="sum"><span><i class="d" style="background:var(--g)"></i>RUNNING<b id="s-g">–</b></span><span><i class="d" style="background:var(--y)"></i>STANDBY<b id="s-y">–</b></span><span><i class="d" style="background:var(--r)"></i>STOPPED<b id="s-r">–</b></span><span><i class="d" style="background:rgba(255,255,255,.45)"></i>NOT YET<b id="s-x">–</b></span></div>
   </div>
 </div></header>
@@ -126,6 +128,7 @@ main.gut{padding-block:6px 44px}
     .catch(function(){ if(!last){ say('いまは読めませんでした。電波を確かめて「いま読み直す」を押してください。'); } else { render(last); } });
   }
   $('reload').addEventListener('click',load);
+  $('reload2').addEventListener('click',function(){ var b=$('reload2'); b.disabled=true; b.textContent='読みこみ中…'; load(); setTimeout(function(){ b.disabled=false; b.textContent='更新'; },1500); });
   document.addEventListener('visibilitychange',function(){ if(!document.hidden) load(); });
   load(); setInterval(load,60000);
   if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(function(){}); }
