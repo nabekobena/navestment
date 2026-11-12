@@ -77,11 +77,13 @@ main.gut{padding-block:6px 44px}
 <script>
 (function(){
   var URL_='https://dl.dropboxusercontent.com/scl/fi/edpytjrj2agcpxcf27wta/status.json?rlkey=0rp1jqqgl710ow3de4awzg82d&dl=1';
-  var ICON={chihou:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c3-6 6-9 9-9s6 3 9 9"/><path d="M12 9V4"/><path d="M12 4l5 2-5 2"/></svg>',jra:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V7l5-3 4 3 3-1 4 5-3 2-3-1-2 3v5"/></svg>',
+  var ICON={jra:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 21.5h11.5c0-5.2-1.1-8.4-3.2-11.2 1.4-.7 2-2.2 1.4-3.8L14.4 4.2 13.7 1.8 11 4.3C8 5.4 5.4 8.4 4.3 12.2l2.2 2.3 3.2-1.6c.9.9.9 2.2.1 3.4C8.6 17.9 7 19.300 7 21.5z"/><circle cx="11.6" cy="7.6" r=".9" fill="var(--keiba)"/></svg>',
+    chihou:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"><path d="M7.2 19.500V11.200a4.800 4.800 0 0 1 9.600 0v8.300"/><g stroke="var(--chihou)" stroke-width="1.3"><path d="M7.200 16.500v.01M7.200 12.800v.01M9.200 8.300v.01M14.800 8.300v.01M16.800 12.800v.01M16.800 16.500v.01"/></g></svg>',
     hasshin:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4l9 4V6z"/><path d="M13 9c2 0 3 1.2 3 3s-1 3-3 3"/><path d="M18 6c2 1.5 3 3.5 3 6s-1 4.5-3 6"/></svg>',
     toushi:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M5 16l4-5 4 3 6-8"/><path d="M15 6h4v4"/></svg>',
     kurashi:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'};
-  var GROUPS=[['jra','JRA','買う・オッズを残す・判定する',[1,3,5]],['chihou','地方競馬','買う・オッズを残す・判定する',[2,4,6]],['hasshin','発信','YouTube・note・動画',[8,9,10]],['toushi','投資とデータ','FX・CFD・netkeiba',[11,12,13]],['kurashi','くらしと見張り','日報・トレカ抽選・見張り番',[7,14,15]]];
+  var GROUPS=[['kurashi','くらしと見張り','日報・トレカ抽選・見張り番',[1,2,3]],['jra','JRA','買う・オッズを残す・判定する',[4,5,6]],['chihou','地方競馬','買う・オッズを残す・判定する',[7,8,9]],['hasshin','発信','YouTube・note・動画',[10,11,12]],['toushi','投資とデータ','FX・CFD・netkeiba',[13,14,15]]];
+  var RENUM={7:1,14:2,15:3,1:4,3:5,5:6,2:7,4:8,6:9,8:10,9:11,10:12,11:13,12:14,13:15};   // 11/12 社長：日報・トレカ抽選・見張り番を 1,2,3 に。あとは番号順（PC が書く番号を、ここで新しい番号に読みかえる）
   var WORD={g:'RUNNING',y:'STANDBY',r:'STOPPED',x:'NOT YET'};
   var $=function(id){return document.getElementById(id)}, last=null;
   function el(t,c,x){var e=document.createElement(t); if(c) e.className=c; if(x!=null) e.textContent=x; return e;}
@@ -89,7 +91,7 @@ main.gut{padding-block:6px 44px}
   function hm(ts){ try{ return new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(ts)); }catch(e){ return '—'; } }
   function render(S){
     var C=(S.cards||[]).filter(function(c){return Array.isArray(c)&&c.length>=5&&WORD[c[2]];}), n={g:0,y:0,r:0,x:0}, by={};
-    C.forEach(function(c){ n[c[2]]++; by[c[0]]=c; });
+    C=C.map(function(c){ var d=c.slice(); d[0]=RENUM[c[0]]||c[0]; return d; }); C.forEach(function(c){ n[c[2]]++; by[c[0]]=c; });
     var tot=Math.max(1,C.length), circ=2*Math.PI*46;
     $('arc').setAttribute('stroke-dasharray',(circ*n.g/tot).toFixed(1)+' '+circ.toFixed(1));
     $('n-run').textContent=n.g; $('n-tot').textContent='/ '+C.length+' RUNNING';
