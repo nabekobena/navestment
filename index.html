@@ -32,10 +32,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15p
 .ring .n{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
 .ring .n b{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums}.ring .n span{font-size:11px;opacity:.85}
 .ttl{flex:1;min-width:0;flex-basis:220px}.ttl h1{margin:0;font-size:28px;letter-spacing:.04em;font-weight:800}.ttl h1 i{font-style:normal;color:var(--gold)}
-.ttl p{margin:2px 0 10px;font-size:13px;opacity:.88}
+.ttl h1{margin-bottom:10px}
 .bar{display:flex;height:10px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.16);max-width:520px}
 .bar i{display:block;height:100%}.bar .g{background:var(--g)}.bar .y{background:var(--y)}.bar .r{background:var(--r)}.bar .x{background:rgba(255,255,255,.28)}
-.sum{display:flex;gap:6px 14px;flex-wrap:wrap;margin-top:8px;font-size:13px}.sum b{font-size:17px;margin-left:4px;font-variant-numeric:tabular-nums}
+.sum{letter-spacing:.04em;display:flex;gap:6px 14px;flex-wrap:wrap;margin-top:8px;font-size:13px}.sum b{font-size:17px;margin-left:4px;font-variant-numeric:tabular-nums}
 .sum .d{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
 .alert{background:var(--r);color:var(--chipink);font-weight:700;font-size:14px}.alert .gut{padding-block:9px}
 .stale{background:var(--y);color:var(--chipink);font-weight:700;font-size:14px}.stale .gut{padding-block:9px}
@@ -50,7 +50,7 @@ main.gut{padding-block:6px 44px}
 .c.r{border-color:var(--r)}
 .top{display:flex;align-items:center;gap:9px}.no{color:var(--chipink);font-size:12px;font-weight:800;border-radius:7px;padding:1px 7px;font-variant-numeric:tabular-nums}
 .nm{font-size:17px;font-weight:800;flex:1;min-width:0;overflow-wrap:anywhere}
-.chip{font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px;white-space:nowrap;color:var(--chipink)}.c.g .chip{background:var(--g)}.c.y .chip{background:var(--y)}.c.r .chip{background:var(--r)}.c.x .chip{background:var(--x)}
+.chip{font-size:10px;letter-spacing:.06em;font-weight:800;border-radius:999px;padding:2px 9px;white-space:nowrap;color:var(--chipink)}.c.g .chip{background:var(--g)}.c.y .chip{background:var(--y)}.c.r .chip{background:var(--r)}.c.x .chip{background:var(--x)}
 .tag{font-size:11px;color:var(--sub)}.st{font-size:13px;overflow-wrap:anywhere}
 .empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:22px 16px;color:var(--sub);text-align:center;margin-top:20px}
 .btn{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:700;font-size:14px;text-decoration:none;cursor:pointer}
@@ -60,10 +60,10 @@ main.gut{padding-block:6px 44px}
 </head><body>
 
 <header class="hero"><div class="gut">
-  <div class="ring"><svg viewBox="0 0 108 108" aria-hidden="true"><circle cx="54" cy="54" r="46" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="10"/><circle id="arc" cx="54" cy="54" r="46" fill="none" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 289"/></svg><div class="n"><b id="n-run">–</b><span id="n-tot">動いている</span></div></div>
-  <div class="ttl"><h1>Na<i>vest</i>ment</h1><p>ナベやんの投資アプリ　15個の状態（見るだけ）</p>
+  <div class="ring"><svg viewBox="0 0 108 108" aria-hidden="true"><circle cx="54" cy="54" r="46" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="10"/><circle id="arc" cx="54" cy="54" r="46" fill="none" stroke="var(--gold)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 289"/></svg><div class="n"><b id="n-run">–</b><span id="n-tot">RUNNING</span></div></div>
+  <div class="ttl"><h1>Na<i>vest</i>ment</h1>
     <div class="bar" id="bar"></div>
-    <div class="sum"><span><i class="d" style="background:var(--g)"></i>動いている<b id="s-g">–</b></span><span><i class="d" style="background:var(--y)"></i>待ち・試運転<b id="s-y">–</b></span><span><i class="d" style="background:var(--r)"></i>止まっている<b id="s-r">–</b></span><span><i class="d" style="background:rgba(255,255,255,.45)"></i>まだ<b id="s-x">–</b></span></div>
+    <div class="sum"><span><i class="d" style="background:var(--g)"></i>RUNNING<b id="s-g">–</b></span><span><i class="d" style="background:var(--y)"></i>STANDBY<b id="s-y">–</b></span><span><i class="d" style="background:var(--r)"></i>STOPPED<b id="s-r">–</b></span><span><i class="d" style="background:rgba(255,255,255,.45)"></i>NOT YET<b id="s-x">–</b></span></div>
   </div>
 </div></header>
 <div class="alert" id="alert" hidden><div class="gut" id="alert-t"></div></div>
@@ -82,7 +82,7 @@ main.gut{padding-block:6px 44px}
     toushi:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M5 16l4-5 4 3 6-8"/><path d="M15 6h4v4"/></svg>',
     kurashi:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'};
   var GROUPS=[['jra','JRA','買う・オッズを残す・判定する',[1,3,5]],['chihou','地方競馬','買う・オッズを残す・判定する',[2,4,6]],['hasshin','発信','YouTube・note・動画',[8,9,10]],['toushi','投資とデータ','FX・CFD・netkeiba',[11,12,13]],['kurashi','くらしと見張り','日報・トレカ抽選・見張り番',[7,14,15]]];
-  var WORD={g:'動いている',y:'待ち・試運転',r:'止まっている',x:'まだ'};
+  var WORD={g:'RUNNING',y:'STANDBY',r:'STOPPED',x:'NOT YET'};
   var $=function(id){return document.getElementById(id)}, last=null;
   function el(t,c,x){var e=document.createElement(t); if(c) e.className=c; if(x!=null) e.textContent=x; return e;}
   function say(msg){ var g=$('groups'); g.textContent=''; g.appendChild(el('div','empty',msg)); }
@@ -92,7 +92,7 @@ main.gut{padding-block:6px 44px}
     C.forEach(function(c){ n[c[2]]++; by[c[0]]=c; });
     var tot=Math.max(1,C.length), circ=2*Math.PI*46;
     $('arc').setAttribute('stroke-dasharray',(circ*n.g/tot).toFixed(1)+' '+circ.toFixed(1));
-    $('n-run').textContent=n.g; $('n-tot').textContent='／'+C.length+' 動いている';
+    $('n-run').textContent=n.g; $('n-tot').textContent='/ '+C.length+' RUNNING';
     ['g','y','r','x'].forEach(function(k){ $('s-'+k).textContent=n[k]; });
     var bar=$('bar'); bar.textContent=''; ['g','y','r','x'].forEach(function(k){ var i=el('i',k); i.style.width=(100*n[k]/tot).toFixed(2)+'%'; bar.appendChild(i); });
     var red=C.filter(function(c){return c[2]==='r'});
