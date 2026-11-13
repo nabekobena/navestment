@@ -89,6 +89,9 @@ h2.day{font-size:16px;color:var(--ink);margin:8px 0 -2px;display:flex;align-item
 .fault{font-size:16px;font-weight:700;overflow-wrap:anywhere}
 .empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:20px 16px;color:var(--sub);font-size:14px;text-align:center}
 .note{font-size:12px;color:var(--sub)}
+.note1{cursor:pointer}
+#notepop{position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--card,#fff);color:inherit;border:2px solid var(--line,#999);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.6;max-height:50vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+#notepop small{display:block;margin-top:8px;font-size:12px;opacity:.7}
 .ready{font-size:14px;font-weight:700;background:var(--good-bg);color:var(--good);border-radius:8px;padding:6px 10px}
 .hand{font-size:14px;font-weight:700;background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:6px 10px;overflow-wrap:anywhere}
 .idgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;font-size:15px}.idgrid div{display:flex;flex-direction:column;min-width:0}.idgrid .k{font-size:12px;color:var(--sub);font-weight:700}.idgrid .v{font-weight:700;overflow-wrap:anywhere}.idgrid .v.miss{color:var(--warn)}
@@ -237,6 +240,13 @@ form .btn{grid-column:1/-1}
   function ymd(d){ return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo'}).format(d); }
   function md(d){ var p=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',weekday:'short'}).formatToParts(d), o={}; p.forEach(function(x){o[x.type]=x.value}); return {d:o.month+'/'+o.day, w:'('+o.weekday+')'}; }
   function daysTo(d){ var a=new Date(ymd(new Date())+'T00:00:00+09:00'), b=new Date(ymd(d)+'T00:00:00+09:00'); return Math.round((b-a)/86400000); }
+
+  // 備考を押すと全文を下に出す（カードの高さは変えない）。どこかを押すと閉じる
+  (function(){ var pop=null; function close(){ if(pop){ pop.remove(); pop=null; } }
+    document.addEventListener('click',function(e){ var n=e.target.closest&&e.target.closest('.note1');
+      if(pop&&(!n||e.target.closest('#notepop'))){ close(); if(!n) return; }
+      if(!n) return; e.stopPropagation(); close(); pop=document.createElement('div'); pop.id='notepop'; pop.textContent=n.getAttribute('data-full')||n.textContent; var sm=document.createElement('small'); sm.textContent='押すと閉じます'; pop.appendChild(sm); document.body.appendChild(pop); });
+    window.addEventListener('scroll',close,{passive:true}); })();
   function toast(m){ $('toast-t').textContent=m; $('toast').hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(function(){ $('toast').hidden=true; },5000); }
   function put(coll,id,patch){ if(!db||!id) return Promise.reject({code:'no_id'}); return db.doc(coll+'/'+id).update(patch); }
   function fail(e){ toast('書きこめませんでした（'+String((e&&(e.code||e.message))||e).slice(0,60)+'）'); }
@@ -332,7 +342,7 @@ form .btn{grid-column:1/-1}
     if(coll==='shaken'&&r.opts){ var op=el('div','pills'); op.appendChild(el('span','pill '+(r.opts.zeidome?'wait':''),'税止め '+(r.opts.zeidome?'あり':'なし'))); op.appendChild(el('span','pill '+(r.opts.plate_change?'wait':''),'ナンバー変更 '+(r.opts.plate_change?'あり':'なし'))); b.appendChild(op); }
     if(coll==='shaken'&&!r.done&&isShk(r)){ [maintWarn(r),needWarn(r)].forEach(function(mw){ if(mw){ b.appendChild(el('div','alert',mw)); t.classList.add('warned'); } }); }
     var ps=el('div','pills'); if(coll==='pickups'&&!r.done&&(r.docs||{}).plate) ps.appendChild(el('span','pill go','新ナンバー着'));  (r.tags||[]).forEach(function(x){ if(!x||!x.t||/引き取り待ち/.test(x.t)) return; ps.appendChild(el('span','pill'+(x.k==='go'?' go':x.k==='wait'?' wait':''),zumi(x.t))); }); if(ps.children.length) b.appendChild(ps);
-    if(r.note&&(coll!=='shaken'||String(r.note).replace(/軽自動車検査協会\s*宮城主管事務所[。、]?|予約番号\s*[0-9]+(（[^）]*）)?[。、]?/g,'').trim())) b.appendChild(el('div','meta note1','備考：'+zumi(coll==='shaken'?String(r.note).replace(/軽自動車検査協会\s*宮城主管事務所[。、]?|予約番号\s*[0-9]+(（[^）]*）)?[。、]?/g,'').trim():r.note)));
+    if(r.note&&(coll!=='shaken'||String(r.note).replace(/軽自動車検査協会\s*宮城主管事務所[。、]?|予約番号\s*[0-9]+(（[^）]*）)?[。、]?/g,'').trim())) { var nt='備考：'+zumi(coll==='shaken'?String(r.note).replace(/軽自動車検査協会\s*宮城主管事務所[。、]?|予約番号\s*[0-9]+(（[^）]*）)?[。、]?/g,'').trim():r.note), ne=el('div','meta note1',nt); ne.setAttribute('data-full',nt); ne.setAttribute('role','button'); b.appendChild(ne); }
     var row=el('div','row');
     if(coll==='shaken'&&isShk(r)){
       // 車検の結果：合格／未受験／限定車検。どれかを押すと「済み」になり、当日はグレーで残る。もう一度押すと戻る
