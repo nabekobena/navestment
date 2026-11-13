@@ -142,6 +142,7 @@ form .btn{grid-column:1/-1}
 .car small.shl2{display:flex!important;flex-wrap:wrap;column-gap:12px;row-gap:0;margin:3px 0 0!important}.car small.shl2 .nw{white-space:nowrap}
 .stub{flex-wrap:nowrap!important;min-width:0}.stub>.d,.stub>.w,.stub>.t,.stub>.left{flex:0 0 auto;white-space:nowrap}.stub>.kind.inst{flex:0 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block}.stub>.kind.inst b{display:inline-block}
 .tk.shc .stub{display:none!important}.shtop .left{margin-left:auto;font-size:12px;font-weight:900;border-radius:999px;padding:1px 8px;background:var(--warn-bg);color:var(--warn)}
+.v.kibou{color:#d32f2f!important;font-size:20px!important;font-weight:900!important}.kibourow{grid-column:1/-1}.kibourow .k{color:#d32f2f!important;font-weight:900}
 .shtop{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:16px;margin:0 0 4px}.shtop b{font-weight:900}.shtop span{font-weight:700;font-variant-numeric:tabular-nums}
 .car small.shl2{display:block}
 </style>
@@ -475,7 +476,7 @@ form .btn{grid-column:1/-1}
     var dc=r.docs||{}, stage=(dc.juminhyo===true)?(dc.plate===true?'done':'plate'):'shorui', t=el('article','tk'+(stage==='done'?' done':'')), b=el('div','body');
     b.appendChild(el('div','kind',r.how||'引き取り')); var c=el('div','car',(r.car||'').replace(/（.*?）/g,'')); if(r.tail) c.appendChild(el('small','','車台番号 下3桁 '+r.tail)); b.appendChild(c);
     var real=r.real_name||(r.meigi_ok?r.who:''), yid=r.yahoo_id||r.yahoo_name||(!r.meigi_ok?r.who:''), ps=el('div','idgrid');
-    [['オークションID',aidTxt(r)],['終了日',endTxt(r)],['本名',real],['自治体',r.city],['ヤフオクID',yid],['希望ナンバー',kibouTxt(r)]].forEach(function(x){ var d=el('div'); d.appendChild(el('span','k',x[0])); d.appendChild(el('span','v'+(x[1]?'':' miss'),x[1]?String(x[1]).replace(/様$/,''):'未確認')); ps.appendChild(d); }); b.appendChild(ps);
+    [['オークションID',aidTxt(r)],['終了日',endTxt(r)],['本名',real],['自治体',r.city],['ヤフオクID',yid],['希望ナンバー',kibouTxt(r)]].forEach(function(x){ var d=el('div'); d.appendChild(el('span','k',x[0])); var kb=(stage==='shorui'&&x[0]==='希望ナンバー'&&r.kibou===true); d.appendChild(el('span','v'+(x[1]?'':' miss')+(kb?' kibou':''),x[1]?String(x[1]).replace(/様$/,''):'未確認')); if(kb) d.classList.add('kibourow'); ps.appendChild(d); }); b.appendChild(ps);
     if(r.docs_note) b.appendChild(el('div','meta',r.docs_note));
     if(dc.juminhyo) b.appendChild(el('div','ready','住民票 着：'+(hm(r.docs_at)||'（いつ来たかの記録なし）')));
     if(dc.plate===true) b.appendChild(el('div','ready','新ナンバー 着：'+(hm(r.plate_at)||'（いつ来たかの記録なし）')));
