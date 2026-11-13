@@ -89,7 +89,7 @@ h2.day{font-size:16px;color:var(--ink);margin:8px 0 -2px;display:flex;align-item
 .fault{font-size:16px;font-weight:700;overflow-wrap:anywhere}
 .empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:20px 16px;color:var(--sub);font-size:14px;text-align:center}
 .note{font-size:12px;color:var(--sub)}
-.note1{cursor:pointer}
+article.tk{cursor:pointer}.note1{cursor:pointer}
 #notepop{position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--card,#fff);color:inherit;border:2px solid var(--line,#999);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.6;max-height:50vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 6px 24px rgba(0,0,0,.25)}
 #notepop small{display:block;margin-top:8px;font-size:12px;opacity:.7}
 .ready{font-size:14px;font-weight:700;background:var(--good-bg);color:var(--good);border-radius:8px;padding:6px 10px}
@@ -243,7 +243,7 @@ form .btn{grid-column:1/-1}
 
   // 備考を押すと全文を下に出す（カードの高さは変えない）。どこかを押すと閉じる
   (function(){ var pop=null; function close(){ if(pop){ pop.remove(); pop=null; } }
-    document.addEventListener('click',function(e){ var n=e.target.closest&&e.target.closest('.note1');
+    document.addEventListener('click',function(e){ var n=e.target.closest&&e.target.closest('.note1'); if(!n&&e.target.closest&&!e.target.closest('button,a,input,label,select,textarea,summary,.chk,.row,#notepop')){ var ar=e.target.closest('article'); if(ar) n=ar.querySelector('.note1'); }
       if(pop&&(!n||e.target.closest('#notepop'))){ close(); if(!n) return; }
       if(!n) return; e.stopPropagation(); close(); pop=document.createElement('div'); pop.id='notepop'; pop.setAttribute('data-at',Date.now()); pop.textContent=n.getAttribute('data-full')||n.textContent; var sm=document.createElement('small'); sm.textContent='押すと閉じます'; pop.appendChild(sm); document.body.appendChild(pop); });
     })();
