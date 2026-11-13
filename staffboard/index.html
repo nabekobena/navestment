@@ -245,8 +245,8 @@ form .btn{grid-column:1/-1}
   (function(){ var pop=null; function close(){ if(pop){ pop.remove(); pop=null; } }
     document.addEventListener('click',function(e){ var n=e.target.closest&&e.target.closest('.note1');
       if(pop&&(!n||e.target.closest('#notepop'))){ close(); if(!n) return; }
-      if(!n) return; e.stopPropagation(); close(); pop=document.createElement('div'); pop.id='notepop'; pop.textContent=n.getAttribute('data-full')||n.textContent; var sm=document.createElement('small'); sm.textContent='押すと閉じます'; pop.appendChild(sm); document.body.appendChild(pop); });
-    window.addEventListener('scroll',close,{passive:true}); })();
+      if(!n) return; e.stopPropagation(); close(); pop=document.createElement('div'); pop.id='notepop'; pop.setAttribute('data-at',Date.now()); pop.textContent=n.getAttribute('data-full')||n.textContent; var sm=document.createElement('small'); sm.textContent='押すと閉じます'; pop.appendChild(sm); document.body.appendChild(pop); });
+    })();
   function toast(m){ $('toast-t').textContent=m; $('toast').hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(function(){ $('toast').hidden=true; },5000); }
   function put(coll,id,patch){ if(!db||!id) return Promise.reject({code:'no_id'}); return db.doc(coll+'/'+id).update(patch); }
   function fail(e){ toast('書きこめませんでした（'+String((e&&(e.code||e.message))||e).slice(0,60)+'）'); }
