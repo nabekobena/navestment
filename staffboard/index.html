@@ -587,14 +587,19 @@ form .btn{grid-column:1/-1}
     document.addEventListener('fullscreenchange',lab); document.addEventListener('webkitfullscreenchange',lab); lab(); })();
   $('f-skind').addEventListener('change',function(){ $('l-zei').hidden=$('l-pl').hidden=!(tab==='shaken'&&this.value==='登録：名義変更'); });
   $('addform').addEventListener('submit',function(ev){
-    ev.preventDefault(); if(!db) return; var base={car:$('f-car').value.trim(), tail:$('f-tail').value.trim(), note:$('f-note').value.trim(), done:false, src:'手入力', added_at:new Date().toISOString()}, coll;
+    ev.preventDefault(); if(!db||window.SBADDING) return; var base={car:$('f-car').value.trim(), tail:$('f-tail').value.trim(), note:$('f-note').value.trim(), done:false, src:'手入力', added_at:new Date().toISOString()}, coll;
     if(tab==='plan'){ coll='pickups'; base.how=$('f-kind').value; base.who=$('f-who').value.trim(); base.date=$('f-date').value||''; base.time=$('f-time').value.trim(); base.tags=[]; base.handover=$('f-hand').value.trim(); base.docs={}; }
     else if(tab==='arr'){ coll='arrivals'; base.from=$('f-who').value.trim(); base.date=$('f-date').value||''; }
     else if(tab==='shaken'){ coll='shaken'; base.how=$('f-skind').value; base.from=$('f-who').value.trim(); base.date=$('f-date').value||''; base.time=$('f-time').value.trim(); if(base.how==='登録：名義変更') base.opts={zeidome:$('f-zei').value==='あり',plate_change:$('f-pl').value==='あり'}; }
     else if(tab==='memo'){ coll='memos'; base={text:$('f-note').value.trim(), by:$('f-who').value.trim(), at:new Date().toISOString(), done:false}; if(!base.text) return; }
     else if(tab==='stock'){ coll='stock'; base.steps={no_shaken:$('f-uke').value==='受けない'}; } else { coll='maint'; base.kind=tab; base.steps={}; }
-    db.collection(coll).add(base).then(function(){ $('addform').reset(); $('addbox').open=false; }).catch(fail);
+    window.SBADDING=true; var sbtn=$('addform').querySelector('button[type=submit],button:not([type])'); if(sbtn) sbtn.disabled=true;
+    db.collection(coll).add(base).then(function(){ $('addform').reset(); $('addbox').open=false; }).catch(fail).then(function(){ window.SBADDING=false; if(sbtn) sbtn.disabled=false; });
   });
+  // 登録・車検を足すときは、日にちに翌日を先に入れる
+  $('addbox').addEventListener('toggle',function(){ if(!$('addbox').open||tab!=='shaken'||$('f-date').value) return; var t=new Date(Date.now()+9*3600e3+864e5); $('f-date').value=t.toISOString().slice(0,10); });
+  // 連打で2回入らないように：0.8秒以内のくり返しの押しは無視する
+  (function(){ var last=0, lastEl=null, lastKey=''; document.addEventListener('click',function(e){ var x=e.target.closest&&e.target.closest('button,label.chk,input[type=checkbox],summary'); if(!x) return; if(x.id==='fullbtn') return; var lb=x.closest('label'); if(lb) x=lb; var now=Date.now(); if(x===lastEl&&now-last<60) return; var ar=x.closest('article'), cr=ar&&ar.querySelector('.car'), key=(cr?cr.textContent:'')+'|'+(x.id||'')+'|'+x.textContent; if((key===lastKey&&now-last<800)||now-last<500){ e.preventDefault(); e.stopImmediatePropagation(); return; } last=now; lastEl=x; lastKey=key; },true); })();
   var timer=setTimeout(function(){ if(!ready){ ready=true; $('lead').textContent='一覧を読みこめませんでした。「更新」を押してください。'; render(); } },10000);
 
   // ---- V19：社長が開いた時だけ、Dropbox の状態ファイルから写す（Claude を通さない）。社員の画面では何もしない
