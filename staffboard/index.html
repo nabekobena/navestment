@@ -205,7 +205,7 @@ form .btn{grid-column:1/-1}
     doc:function(id){return docRef(c+'/'+id);}
   };}};
   window.claude={use:function(n){return Promise.resolve(n==='db'?db:null);}};
-  pull(); setInterval(function(){if(!document.hidden)pull();},15000);
+  pull(); setInterval(function(){if(!document.hidden)pull();},5000);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)pull();});
 })();
 </script>
