@@ -2,16 +2,659 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Staff Board</title>
 <link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Staff Board">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<style>body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#1e5aa8;color:#fff;font:16px system-ui,sans-serif}a{background:#fff;color:#1e5aa8;padding:16px 32px;border-radius:12px;font-weight:700;text-decoration:none;font-size:18px}img{width:96px;border-radius:20px}</style>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Staff Board">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head><body>
-<img src="icon-192.png" alt="">
-<a id="go" href="https://claude.ai/artifact/N2EUwdkwnv6yCBXDGKn3yN">Staff Board を開く</a>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+/* 並べ方：上のタブで4つを切りかえ（予定／未出品／整備 自社／整備 外注）。予定は日付の半券つきの札、ほかは車ごとの札にチェックの列 */
+:root{
+  --bg:#f2f4f1; --card:#ffffff; --ink:#1a2420; --sub:#5d6b64; --line:#dde3de;
+  --accent:#1f6f54; --accent-ink:#ffffff; --stub:#e8f1ec;
+  --warn:#b96a00; --warn-bg:#fff3dc; --good:#157a4c; --good-bg:#e2f5ea; --mute-bg:#eceff0;
+  --k-pick:#1f6f54; --k-pick-bg:#e3f2ea; --k-gen:#1d5fae; --k-gen-bg:#e2edfb; --k-riku:#7a4fb0; --k-riku-bg:#efe7fa; --k-arr:#8a5a1c; --k-arr-bg:#f6ecdb; --k-shk:#0f6f86; --k-shk-bg:#e0f1f5; --k-reg:#8a3f7a; --k-reg-bg:#f6e6f2; --bad:#b93434; --bad-bg:#fbe6e6;
+  --font:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#111613; --card:#1a211d; --ink:#eef3f0; --sub:#a3b0a9; --line:#2b352f;
+  --accent:#6fd3a8; --accent-ink:#0e1512; --stub:#1f2c26;
+  --warn:#ffbf5c; --warn-bg:#3a2c12; --good:#5fd69a; --good-bg:#15301f; --mute-bg:#232a27; --k-pick:#6fd3a8; --k-pick-bg:#17302a; --k-gen:#8fbcff; --k-gen-bg:#16263d; --k-riku:#c7a6f2; --k-riku-bg:#2a2140; --k-arr:#e3b877; --k-arr-bg:#33281a; --k-shk:#74cfe3; --k-shk-bg:#14303a; --k-reg:#e3a0d3; --k-reg-bg:#351d30; --bad:#ff8a8a; --bad-bg:#3a1a1a; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#111613; --card:#1a211d; --ink:#eef3f0; --sub:#a3b0a9; --line:#2b352f;
+  --accent:#6fd3a8; --accent-ink:#0e1512; --stub:#1f2c26;
+  --warn:#ffbf5c; --warn-bg:#3a2c12; --good:#5fd69a; --good-bg:#15301f; --mute-bg:#232a27; --k-pick:#6fd3a8; --k-pick-bg:#17302a; --k-gen:#8fbcff; --k-gen-bg:#16263d; --k-riku:#c7a6f2; --k-riku-bg:#2a2140; --k-arr:#e3b877; --k-arr-bg:#33281a; --k-shk:#74cfe3; --k-shk-bg:#14303a; --k-reg:#e3a0d3; --k-reg-bg:#351d30; --bad:#ff8a8a; --bad-bg:#3a1a1a; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55}
+.wrap{max-width:720px;margin:0 auto;padding-block:20px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-size:24px;font-weight:900;margin:0;letter-spacing:.02em}
+h2{font-size:15px;font-weight:900;margin:10px 0 0;color:var(--sub);letter-spacing:.06em}
+.lead{color:var(--sub);font-size:13px;margin:2px 0 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:700;font-size:14px;cursor:pointer}
+.btn.go{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--sub);font-weight:500;padding:0 8px;min-height:36px}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px}
+.tabs button{border:0;background:transparent;color:var(--sub);font:inherit;font-weight:700;font-size:13px;line-height:1.25;padding:7px 2px;min-height:48px;border-radius:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.tabs b{font-variant-numeric:tabular-nums;font-size:16px;font-weight:900;color:var(--ink)}
+.tabs button[aria-selected="true"] b{color:var(--accent-ink)}
+.tabs b.zero{opacity:.45}
+.list{display:flex;flex-direction:column;gap:10px}
+.tk{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.stub{background:var(--stub);border-bottom:1px dashed var(--line);padding:7px 12px;display:flex;flex-direction:row;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tk.nodate .stub{display:none}
+.stub .d{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.2}
+.stub .t{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.2;order:-1}
+.stub .w{font-size:14px;color:var(--sub);font-weight:700;margin-left:-4px}
+.stub .left{margin-left:auto;font-size:13px;font-weight:900;border-radius:999px;padding:2px 10px;background:var(--card);color:var(--sub)}
+.tk.today .stub{background:var(--warn-bg)} .tk.today .stub .left{background:var(--warn);color:var(--card)}
+.tk.soon .stub .left{background:var(--warn-bg);color:var(--warn)}
+.tk.done{background:var(--mute-bg)} .tk.done .stub{background:var(--mute-bg)} .tk.done .car,.tk.done .meta,.tk.done .stub .d,.tk.done .stub .t{color:var(--sub)} .tk.done .car{text-decoration:line-through}
+.body{min-width:0;padding:10px 12px 12px;display:flex;flex-direction:column;gap:5px}
+.car{font-size:20px;font-weight:900;overflow-wrap:anywhere;line-height:1.3}
+.car small{display:block;font-size:15px;color:var(--ink);font-weight:700;margin:2px 0 0;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.who{font-size:17px;font-weight:700;overflow-wrap:anywhere}.who small{font-size:13px;color:var(--sub);font-weight:500;margin-left:6px}
+.kind{font-size:12px;font-weight:900;color:var(--kc,var(--accent));letter-spacing:.04em}
+.kind b{display:inline-block;background:var(--kc,var(--accent));color:var(--card);border-radius:6px;padding:1px 8px;margin-right:6px;font-size:12px}
+.tk.k-pick{--kc:var(--k-pick);--kb:var(--k-pick-bg)} .tk.k-gen{--kc:var(--k-gen);--kb:var(--k-gen-bg)} .tk.k-riku{--kc:var(--k-riku);--kb:var(--k-riku-bg)} .tk.k-arr{--kc:var(--k-arr);--kb:var(--k-arr-bg)} .tk.k-shk{--kc:var(--k-shk);--kb:var(--k-shk-bg)} .tk.k-reg{--kc:var(--k-reg);--kb:var(--k-reg-bg)}
+.alert{font-size:15px;font-weight:900;background:var(--bad-bg);color:var(--bad);border:2px solid var(--bad);border-radius:8px;padding:8px 10px;overflow-wrap:anywhere}
+.tk.warned{border-color:var(--bad)}
+.tabs b.bad{color:var(--bad)}
+.tk[class*="k-"]{border-left:6px solid var(--kc)} .tk[class*="k-"] .stub{background:var(--kb)}
+.tk.today[class*="k-"] .stub{background:var(--warn-bg)} .tk.done[class*="k-"]{border-left-color:var(--line)} .tk.done[class*="k-"] .stub{background:var(--mute-bg)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--sub);font-weight:700}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.meta{font-size:14px;color:var(--sub);overflow-wrap:anywhere}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px;background:var(--mute-bg);color:var(--sub)}
+.pill.go{background:var(--good-bg);color:var(--good)} .pill.wait{background:var(--warn-bg);color:var(--warn)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chk{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 14px;border:1px solid var(--line);border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;background:var(--card)}
+.chk input{width:24px;height:24px;accent-color:var(--accent)}
+.row .chk.main{flex:1 1 auto;justify-content:center;font-size:16px}
+.row{margin-top:4px}
+h2.day{font-size:16px;color:var(--ink);margin:8px 0 -2px;display:flex;align-items:baseline;gap:8px}h2.day small{font-size:13px;color:var(--sub);font-weight:700}
+.chk.off{opacity:.5;cursor:default;text-decoration:line-through;background:transparent}
+.chk.on{border-color:var(--good);background:var(--good-bg);color:var(--good)}
+.btn.on{border-color:var(--warn);background:var(--warn-bg);color:var(--warn)}
+.fixbox{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.fixbox input{flex:1 1 200px;font:inherit;font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-width:0}
+.fault{font-size:16px;font-weight:700;overflow-wrap:anywhere}
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:20px 16px;color:var(--sub);font-size:14px;text-align:center}
+.note{font-size:12px;color:var(--sub)}
+.ready{font-size:14px;font-weight:700;background:var(--good-bg);color:var(--good);border-radius:8px;padding:6px 10px}
+.hand{font-size:14px;font-weight:700;background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:6px 10px;overflow-wrap:anywhere}
+.idgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;font-size:15px}.idgrid div{display:flex;flex-direction:column;min-width:0}.idgrid .k{font-size:12px;color:var(--sub);font-weight:700}.idgrid .v{font-weight:700;overflow-wrap:anywhere}.idgrid .v.miss{color:var(--warn)}
+.kinds{display:flex;flex-wrap:wrap;gap:6px}.kinds button{font:inherit;font-size:14px;font-weight:700;min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--sub);cursor:pointer}.kinds button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.riku{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}.rk-h{font-weight:900}.rk-s{font-size:12px;color:var(--sub);font-weight:700}.rk-cos{display:flex;flex-wrap:wrap;gap:6px}.rk-q{display:flex;flex-direction:column;gap:8px}
+.rk-f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--sub);font-weight:700}.rk-f input{font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);min-width:0}.yen{display:flex;align-items:center;gap:6px;color:var(--ink);font-size:15px}.yen input{flex:1 1 auto;width:100%}
+details.donez{background:var(--mute-bg)}details.donez .list{padding:0 0 14px}
+.car small.miss{color:var(--warn)}
+.meta.miss{color:var(--warn);font-weight:700}
+.idline{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13px}.idline .k{color:var(--sub);font-size:11px;font-weight:700}.idline .v{font-weight:700}.idline .v.miss{color:var(--warn)}
+.pills.inrow{display:inline-flex;flex-wrap:wrap;gap:4px}
+.kind.inst{display:inline-flex;align-items:center;margin-right:2px}
+.memo{font-size:16px;overflow-wrap:anywhere;white-space:pre-wrap}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 14px}
+summary{cursor:pointer;font-weight:700;padding:12px 0;font-size:14px}
+form{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 0 14px}
+form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--sub);font-weight:700;min-width:0}
+form label.w{grid-column:1/-1}
+form input,form select{font:inherit;font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-width:0;width:100%}
+form .btn{grid-column:1/-1}
+.toast{position:fixed;left:0;right:0;bottom:0;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;justify-content:center;pointer-events:none}
+.toast>div{background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:14px;max-width:100%}
+@media (max-width:420px){ form{grid-template-columns:1fr} h1{font-size:20px} .lead{display:none} .wrap{gap:10px;padding-block:12px 96px} }
+/* スマホで縦をつめる（社長 11/13 13:00） */
+@media (max-width:560px){
+  .list{gap:6px}
+  .stub{padding:4px 10px;gap:6px}
+  .stub .t{font-size:17px} .stub .d{font-size:14px} .stub .w{font-size:12px} .stub .left{font-size:12px;padding:1px 8px}
+  .body{padding:6px 10px 8px;gap:3px}
+  .car{font-size:16px;line-height:1.25}
+  .car small{display:inline;font-size:12px;font-weight:700;margin:0 0 0 6px;color:var(--sub)}
+  .who{font-size:14px} .kind{font-size:11px} .kind b{font-size:11px;padding:0 6px}
+  .meta{font-size:12px;line-height:1.4}
+  .idgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 10px;font-size:13px} .idgrid .k{font-size:10px}
+  .hand,.ready,.alert{font-size:12px;padding:4px 8px}
+  .pills{gap:4px} .pill{font-size:11px;padding:1px 8px}
+  .row{gap:6px;margin-top:2px}
+  .chk{min-height:38px;padding:0 10px;font-size:13px} .chk input{width:20px;height:20px}
+  .row .chk.main{font-size:14px}
+  .btn{min-height:36px;padding:0 10px;font-size:13px} .btn.ghost{min-height:32px;padding:0 6px;font-size:12px}
+  h2.day{font-size:14px;margin:4px 0 -2px}
+  .kinds button{min-height:34px;font-size:13px;padding:0 10px}
+  .kinds{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch} .kinds button{flex:0 0 auto}
+  .legend{display:none}
+  .meta.note1{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .hand{padding:3px 8px}
+  .row .chk.main{flex:0 0 auto;min-width:90px}
+}
+.sync{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0;font-size:13px;color:var(--sub)}
+</style>
+<div class="wrap">
+  <header>
+    <div><h1>Staff Board</h1><p class="lead" id="lead">終わったらチェック。当日はグレーで残り、次の日に消えます。</p></div>
+    <div class="row" style="margin:0"><button class="btn" id="fullbtn" type="button" hidden>全画面</button><button class="btn" id="reload" type="button">更新</button></div>
+  </header>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-plan" aria-selected="true">引渡・来客<b id="n-plan">0</b></button>
+    <button role="tab" id="tab-shaken" aria-selected="false">車検・登録<b id="n-shaken">0</b></button>
+    <button role="tab" id="tab-docs" aria-selected="false">登録待ち<b id="n-docs">0</b></button>
+    <button role="tab" id="tab-arr" aria-selected="false">入庫<b id="n-arr">0</b></button>
+    <button role="tab" id="tab-stock" aria-selected="false">未出品<b id="n-stock">0</b></button>
+    <button role="tab" id="tab-in" aria-selected="false">自社整備<b id="n-in">0</b></button>
+    <button role="tab" id="tab-out" aria-selected="false">外注整備<b id="n-out">0</b></button>
+    <button role="tab" id="tab-memo" aria-selected="false">メモ<b id="n-memo">0</b></button>
+  </div>
+  <div class="list" id="list"><div class="empty">読みこみ中…</div></div>
+  <div class="sync" id="syncbox" hidden><button class="btn" id="syncbtn" type="button">状態ファイルから写す</button><span id="syncst">社長の画面だけに出ます。開いた時にも自動で写します（10分に1回まで）。</span></div>
+  <details id="addbox">
+    <summary id="addsum">＋ 足す</summary>
+    <form id="addform">
+      <label id="l-kind">種類<select id="f-kind"><option>引き取り</option><option>現車確認</option><option>陸送</option><option>納車</option><option>そのほか</option></select></label>
+      <label id="l-skind" class="w">種類<select id="f-skind"><option>車検：予備検査</option><option>車検：中古新規</option><option>登録：予備検書き換え</option><option>登録：名義変更</option></select></label>
+      <label id="l-zei">税止め<select id="f-zei"><option>あり</option><option>なし</option></select></label>
+      <label id="l-uke">車検<select id="f-uke"><option>受ける</option><option>受けない</option></select></label>
+      <label id="l-pl">ナンバー変更<select id="f-pl"><option>あり</option><option>なし</option></select></label>
+      <label>車<input id="f-car" required maxlength="60" placeholder="例：アクティトラック"></label>
+      <label>下3桁<input id="f-tail" maxlength="8" inputmode="numeric" placeholder="例：332"></label>
+      <label id="l-who">だれ<input id="f-who" maxlength="40" placeholder="例：吉田様"></label>
+      <label id="l-date">日<input id="f-date" type="date"></label>
+      <label id="l-time">時間<input id="f-time" maxlength="20" placeholder="例：14:30／空なら「終日」"></label>
+      <label class="w" id="l-hand">引き渡しの時の注意（もらうお金・払うお金など）<input id="f-hand" maxlength="200" placeholder="例：点検の基本料金を現金でもらう"></label>
+      <label class="w" id="l-note">備考<input id="f-note" maxlength="200" placeholder="例：積載車で来る／オイル漏れ修理"></label>
+      <button class="btn go" type="submit">足す</button>
+    </form>
+  </details>
+  <p class="note" id="stamp"></p>
+</div>
+<div class="toast" id="toast" hidden><div id="toast-t"></div></div>
 <script>
-// ホーム画面から開いたときだけ自動で移る（Safariで開いたときは「ホーム画面に追加」できるよう止まる）
-if(window.navigator.standalone||matchMedia('(display-mode: standalone)').matches){location.replace(document.getElementById('go').href)}
+// Staff Board：ログインなし版のデータ係（Googleスプレッドシートを読む・書く）
+(function(){
+  var API='https://script.google.com/macros/s/AKfycbxdxP9S4N1v4dIdwWOpNmz2Myrx9FfuD5a8qu8U73Q1S-W0hpamEB14vTkCjwDmHvk9/exec', D={}, L={}, metaW=[], loaded=false;
+  function isObj(v){return v&&typeof v==='object'&&!Array.isArray(v);}
+  function merge(a,b){var o=isObj(a)?JSON.parse(JSON.stringify(a)):{};Object.keys(b||{}).forEach(function(k){o[k]=(isObj(b[k])&&isObj(o[k]))?merge(o[k],b[k]):b[k];});return o;}
+  function snap(c){return {docs:(D[c]||[]).map(function(d){var x=JSON.parse(JSON.stringify(d));var id=x.id;delete x.id;return {id:id,data:function(){return x;}};})};}
+  function emit(c){(L[c]||[]).forEach(function(f){try{f.ok(snap(c))}catch(e){}});}
+  function pull(){return fetch(API+'?a=all&t='+Date.now()).then(function(r){return r.json()}).then(function(j){
+    if(!j||!j.ok) throw new Error((j&&j.error)||'read');
+    var nd=j.docs||{}; var keys={}; Object.keys(nd).concat(Object.keys(L)).forEach(function(k){keys[k]=1});
+    Object.keys(keys).forEach(function(c){var s=JSON.stringify(nd[c]||[]); if(!loaded||s!==JSON.stringify(D[c]||[])){D[c]=nd[c]||[]; emit(c);} });
+    loaded=true;
+  }).catch(function(e){Object.keys(L).forEach(function(c){(L[c]||[]).forEach(function(f){if(!loaded&&f.err)f.err(e)})});});}
+  function send(b){return fetch(API,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)throw new Error((j&&j.error)||'write');setTimeout(pull,300);return j;});}
+  function local(c,id,d,mode){var a=D[c]=D[c]||[],i=-1;a.forEach(function(x,k){if(x.id===id)i=k});var cur=i>=0?a[i]:{};var n=mode==='update'?merge(cur,d):JSON.parse(JSON.stringify(d||{}));n.id=id;if(i>=0)a[i]=n;else a.push(n);emit(c);}
+  function docRef(path){var p=path.split('/'),c=p[0],id=p[1];return {
+    get:function(){var go=function(){var x=(D[c]||[]).filter(function(d){return d.id===id})[0];return {exists:!!x,data:function(){var y=x?JSON.parse(JSON.stringify(x)):{};delete y.id;return y;}};};return loaded?Promise.resolve(go()):pull().then(go);},
+    set:function(d){local(c,id,d,'set');return send({a:'set',c:c,id:id,d:d});},
+    update:function(d){local(c,id,d,'update');return send({a:'update',c:c,id:id,d:d});},
+    delete:function(){D[c]=(D[c]||[]).filter(function(x){return x.id!==id});emit(c);return send({a:'delete',c:c,id:id});}
+  };}
+  var db={doc:docRef,collection:function(c){return {
+    onSnapshot:function(ok,err){(L[c]=L[c]||[]).push({ok:ok,err:err});if(loaded)ok(snap(c));return function(){};},
+    add:function(d){return send({a:'add',c:c,d:d}).then(function(j){local(c,j.id,d,'set');return {id:j.id};});},
+    doc:function(id){return docRef(c+'/'+id);}
+  };}};
+  window.claude={use:function(n){return Promise.resolve(n==='db'?db:null);}};
+  pull(); setInterval(function(){if(!document.hidden)pull();},15000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)pull();});
+})();
 </script>
+
+<script>
+(function(){
+  var KEYS=['plan','docs','arr','shaken','stock','in','out','memo'], COLLS=['pickups','stock','maint','arrivals','memos','shaken'];
+  var openDocs=false, openArr=false, openShkz=false, openMemo=false, kindF='all', openDone=false, openListed=false, openFixed={in:false,out:false}; try{ var kf0=localStorage.getItem('sb-kind'); if(kf0) kindF=kf0; }catch(e){}
+  var D={pickups:[],stock:[],maint:[],arrivals:[],memos:[],shaken:[]}, got={}, db=null, ready=false, tab='plan', meta=null, toastTimer=null;
+  var STEPS={stock:[['putty','パテ'],['clean','清掃'],['wash','洗車・写真'],['shaken','車検点検']],
+             in:[['parts_ordered','部品注文済'],['parts_none','部品注文なし'],['fixed','整備済み']],
+             out:[['parts_ordered','部品注文済'],['parts_none','部品注文なし'],['delivered','搬入済み'],['fixed','完了']]};
+  var $=function(id){return document.getElementById(id)};
+  try{ var t0=localStorage.getItem('sb-tab'); if(KEYS.indexOf(t0)>=0) tab=t0; }catch(e){}
+  function el(tag,cls,txt){ var e=document.createElement(tag); if(cls) e.className=cls; if(txt!=null) e.textContent=txt; return e; }
+  function copy(x){ var d0=x.data()||{}, o={}; Object.keys(d0).forEach(function(k){ o[k]=d0[k]; }); o.id=x.id; return o; }
+  function jst(s){ if(!s) return null; var d=new Date(s.length<=10?s+'T00:00:00+09:00':s+(/[zZ]|[+-]\d\d:?\d\d$/.test(s)?'':'+09:00')); return isNaN(d)?null:d; }
+  function ymd(d){ return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo'}).format(d); }
+  function md(d){ var p=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',weekday:'short'}).formatToParts(d), o={}; p.forEach(function(x){o[x.type]=x.value}); return {d:o.month+'/'+o.day, w:'('+o.weekday+')'}; }
+  function daysTo(d){ var a=new Date(ymd(new Date())+'T00:00:00+09:00'), b=new Date(ymd(d)+'T00:00:00+09:00'); return Math.round((b-a)/86400000); }
+  function toast(m){ $('toast-t').textContent=m; $('toast').hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(function(){ $('toast').hidden=true; },5000); }
+  function put(coll,id,patch){ if(!db||!id) return Promise.reject({code:'no_id'}); return db.doc(coll+'/'+id).update(patch); }
+  function fail(e){ toast('書きこめませんでした（'+String((e&&(e.code||e.message))||e).slice(0,60)+'）'); }
+  // 済みにした日のうちはグレーで残す。次の日からは出さない
+  function doneToday(r){ return r.done && r.done_at && ymd(new Date(r.done_at))===ymd(new Date()); }
+  function vis(r){ return !r.hide && (!r.done || doneToday(r)); }
+  function check(label,on,fn){ var lab=el('label','chk'+(on?' on':'')), c=document.createElement('input'); c.type='checkbox'; c.checked=!!on; lab.appendChild(c); lab.appendChild(document.createTextNode(label));
+    c.addEventListener('change',function(){ c.disabled=true; fn(c.checked).catch(function(e){ c.checked=!c.checked; fail(e); }).then(function(){ c.disabled=false; }); }); return lab; }
+  function del(coll,r){ var b=el('button','btn ghost','消す'); b.type='button'; var armed=false;
+    b.addEventListener('click',function(){ if(!armed){ armed=true; b.textContent='もう一度押すと消えます'; setTimeout(function(){ armed=false; b.textContent='消す'; },4000); return; } put(coll,r.id,{hide:true,hide_at:new Date().toISOString()}).then(function(){ if(coll==='arrivals') return unStock(r); }).catch(fail); }); return b; }
+  function mkFix(b,title,place,init,onSave){ var box=el('div','fixbox'), inp=document.createElement('input'); inp.maxLength=200; inp.placeholder=place; inp.value=init||''; inp.setAttribute('aria-label',title);
+    var ok=el('button','btn go',title); ok.type='button'; ok.addEventListener('click',function(){ var tx=inp.value.trim(); if(!tx){ inp.focus(); return; } ok.disabled=true; onSave(tx).catch(function(e){ ok.disabled=false; fail(e); }); });
+    box.appendChild(inp); box.appendChild(ok); b.appendChild(box); inp.focus(); }
+  // 予定の種類：引き取り（納車もふくむ）・陸送・現車確認・その他
+  function kindOf(r){ var h=r.how||''; return /現車確認/.test(h)?'gen':/陸送/.test(h)?'riku':/引き取り|納車/.test(h)?'pick':'etc'; }
+  var KINDS=[['all','すべて'],['pick','引き取り'],['riku','陸送'],['gen','現車確認'],['etc','その他']];
+  var RIKU_COS=['ZERO','東日本陸送','東西海運','落札者手配','その他'], NOQ='落札者手配';   // 社長 11/13 11:58 の5つ
+  function rikuCos(){ return RIKU_COS.slice(); }
+  // 陸送の手配：会社（いくつでも選べる）・陸送日・会社ごとの見積もり
+  function rikuBox(b,r){
+    var rk=r.riku||{}, cos=(rk.cos||[]).slice(), q=Object.assign({},rk.quotes||{}), box=el('div','riku'), all=rikuCos();
+    cos=cos.filter(function(c){ return all.indexOf(c)>=0; });
+    box.appendChild(el('div','rk-h','陸送の手配'));
+    var dl=el('label','rk-f'); dl.appendChild(document.createTextNode('陸送日')); var di=document.createElement('input'); di.type='date'; di.value=r.date||''; dl.appendChild(di); box.appendChild(dl);
+    var cw=el('div','rk-cos'), qw=el('div','rk-q');
+    function drawQ(){ qw.textContent=''; if(!cos.length){ qw.appendChild(el('div','note','会社を選ぶと、見積もりを書く欄が出ます。')); return; }
+      cos.forEach(function(c){ if(c===NOQ){ qw.appendChild(el('div','note','落札者手配：見積もりはいりません')); return; } var l=el('label','rk-f'); l.appendChild(document.createTextNode(c+' の見積もり')); var w=el('span','yen'); var i=document.createElement('input'); i.inputMode='numeric'; i.maxLength=12; i.placeholder='例：35000'; i.value=q[c]||''; i.addEventListener('input',function(){ q[c]=i.value.replace(/[^0-9]/g,''); }); w.appendChild(i); w.appendChild(document.createTextNode('円')); l.appendChild(w); qw.appendChild(l); }); }
+    function drawCos(){ cw.textContent=''; all.forEach(function(c){ var on=cos.indexOf(c)>=0, lab=el('label','chk'+(on?' on':'')), cb=document.createElement('input'); cb.type='checkbox'; cb.checked=on; lab.appendChild(cb); lab.appendChild(document.createTextNode(c));
+        cb.addEventListener('change',function(){ var k=cos.indexOf(c); if(cb.checked&&k<0) cos.push(c); if(!cb.checked&&k>=0) cos.splice(k,1); lab.className='chk'+(cb.checked?' on':''); drawQ(); }); cw.appendChild(lab); });
+    }
+    box.appendChild(el('div','rk-s','会社（いくつでも選べる）')); box.appendChild(cw);
+    box.appendChild(qw);
+    var sv=el('button','btn go','陸送の手配を保存'); sv.type='button'; sv.addEventListener('click',function(){ sv.disabled=true; var qq={}; cos.forEach(function(c){ if(q[c]&&c!==NOQ) qq[c]=q[c]; });
+      put('pickups',r.id,{date:di.value||'',riku:{cos:cos,quotes:qq,at:new Date().toISOString()}}).then(function(){ toast('陸送の手配を保存しました'); }).catch(function(e){ sv.disabled=false; fail(e); }); });
+    box.appendChild(sv); drawCos(); drawQ(); b.appendChild(box);
+  }
+  function rikuSum(r){ var rk=r.riku||{}; if(!(rk.cos||[]).length) return ''; return '陸送：'+rk.cos.map(function(c){ var v=(rk.quotes||{})[c]; return c===NOQ?c:c+(v?' '+Number(v).toLocaleString('ja-JP')+'円':'（見積もり待ち）'); }).join('／'); }
+  // ナンバーの書き方：「宮城 582 つ 1-28」→「宮城582つ・128」（3桁以下は頭を・でうめる）
+  function plateFmt(t){ t=String(t||''); var m=/^(.*?)([0-9０-９\-－・.\s]+)$/.exec(t.replace(/\s+$/,'')); if(!m) return t.replace(/\s+/g,'');
+    var head=m[1].replace(/\s+/g,''), dg=m[2].replace(/[０-９]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-65248)}).replace(/[^0-9]/g,'');
+    if(!dg||!/[ぁ-ん]$/.test(head)) return t.replace(/\s+/g,''); if(dg.length<4) dg=Array(5-dg.length).join('・')+dg; return head+dg; }
+  // オークションID：全部わかれば全部、なければ下4桁だけ（下4桁と出す）
+  function aidTxt(r){ var a=String(r.auction_id||'').trim(); if(a) return a; return r.aid4?'（下4桁）'+r.aid4:''; }
+  // 希望ナンバー：kibou が true＝あり（kibou_no に数字）／false＝なし／空＝未確認（社長 11/13 15:47）
+  function kibouTxt(r){ if(r.kibou===true) return 'あり'+(r.kibou_no?'（'+r.kibou_no+'）':'（数字は未確認）'); if(r.kibou===false) return 'なし'; return ''; }
+  function endTxt(r){ var e=r.end_date?jst(r.end_date):null; return e?md(e).d+md(e).w:''; }
+  function zumi(t){ return String(t||'').replace(/ずみ|済み/g,'済'); }
+  // 車検証の情報だけで出す（車種がわからない時）。「ワゴンR？」のような当て推量は出さない
+  function looksPlate(t){ return /[ぁ-ん]\s*[0-9]/.test(t||'') && /[0-9]{2,3}\s*[ぁ-ん]/.test(t||''); }
+  function timeBox(b,coll,r){ var box=el('div','fixbox'), di=document.createElement('input'), ti=document.createElement('input'); di.type='date'; di.value=r.date||''; di.setAttribute('aria-label','日'); ti.maxLength=20; ti.placeholder='時間（例：14:30／空なら終日）'; ti.value=r.time||''; ti.setAttribute('aria-label','時間');
+    var ok=el('button','btn go','保存'); ok.type='button'; ok.addEventListener('click',function(){ ok.disabled=true; put(coll,r.id,{date:di.value||'',time:ti.value.trim(),time_fixed:true}).then(function(){ toast('日時を変えました'); }).catch(function(e){ ok.disabled=false; fail(e); }); });
+    box.appendChild(di); box.appendChild(ti); box.appendChild(ok); b.appendChild(box); di.focus(); }
+  function skey(x){ return String(x.date||'9999-99-99')+'|'+String(x.added_at||''); }
+  // 前に「限定車検」になった同じ車があれば、次の予約に「○回目」と出す
+  function genteiPrev(r){ return D.shaken.filter(function(x){ return x.id!==r.id&&x.result==='gentei'&&isShk(x)&&sameCar(x,r)&&skey(x)<skey(r); }).sort(function(a,b){ return skey(a)<skey(b)?-1:1; }); }
+  function isShk(r){ return !/^登録/.test(r.how||''); }
+  function norm(x){ return String(x||'').replace(/[\s　（）()・\-－]/g,'').toLowerCase(); }
+  function sameCar(a,b){ if(a.chassis&&b.chassis) return norm(a.chassis)===norm(b.chassis); var ta=a.tail||(a.chassis?String(a.chassis).slice(-3):''), tb=b.tail||(b.chassis?String(b.chassis).slice(-3):''); if(ta&&tb) return String(ta)===String(tb); return !!norm(a.car)&&norm(a.car)===norm(b.car); }
+  // 車検予約の車が、まだ終わっていない整備に入っていたら注意を出す
+  function maintWarn(r){ var hit=D.maint.filter(function(m){ return !m.hide&&!m.done&&sameCar(r,m); }); if(!hit.length) return '';
+    return '注意：この車は整備がまだ終わっていません（'+hit.map(function(m){ var st=m.steps||{}, k=(m.kind||'in')==='out'?'外注整備':'自社整備', w=st.delivered?'搬入済み':st.parts_ordered?'部品注文済':st.parts_none?'部品注文なし':'未着手'; return k+'・'+w+(m.note?'・'+m.note:''); }).join('／')+'）'; }
+  // 車検を受けない車・車検が済んだ車・引き渡しが済んだ車に、予約が入っていたら注意を出す
+  function needWarn(r){ var out=[];
+    // 車検点検が済んで予約に入っているのが正しい。済んでいないのに予約に入っているのがまちがい（社長 11/13 13:04）
+    D.stock.filter(function(x){ return !x.hide&&!x.done&&(chMatch(r,x)||sameCar(r,x)); }).forEach(function(x){ var st=x.steps||{}; if(st.no_shaken) out.push('この車は「車検を受けない」になっています'); else if(longShk(x)) out.push('この車は車検が '+reiwa(x.shaken_until)+' まであるので、車検を受けない車です'); else if(needShk(x)&&!st.shaken) out.push('この車は「車検点検」がまだ終わっていません'); });
+    D.pickups.filter(function(x){ return !x.hide&&x.done&&sameCar(r,x); }).forEach(function(){ out.push('この車は引き渡しが済みになっています'); });
+    return out.length?'注意：'+out.join('／')+'。予約がまちがいでないか確かめてください。':''; }
+  function shakenOf(m){ var hit=D.shaken.filter(function(x){ return !x.hide&&!x.done&&isShk(x)&&sameCar(x,m); }); if(!hit.length) return ''; var x=hit[0], d=jst(x.date); return '車検の予約あり：'+((x.how||'').replace(/^車検[：:]?/,'')?(x.how||'').replace(/^車検[：:]?/,'')+' ':'')+(d?md(d).d+md(d).w:'日にち未定')+(x.time?' '+x.time:''); }
+  function planCard(r,coll){
+    coll=coll||'pickups'; var t=el('article','tk'), s=el('div','stub'), b=el('div','body'), d=jst(r.date);
+    if(d){ var m=md(d), n=daysTo(d); s.appendChild(el('span','d',m.d)); s.appendChild(el('span','w',m.w)); s.appendChild(el('span','t',r.time||'終日'));
+      if(!r.done){ s.appendChild(el('span','left',n<0?'済':n===0?'今日':n===1?'あした':'あと'+n+'日')); if(n===0) t.classList.add('today'); else if(n===1) t.classList.add('soon'); } }
+    else { t.classList.add('nodate'); }
+    if(r.done) t.classList.add('done');
+    var how=r.how||(coll==='arrivals'?'入庫予定':coll==='shaken'?'車検':'引き取り'), kc=coll==='shaken'?(isShk(r)?'shk':'reg'):coll==='arrivals'?'arr':/現車確認/.test(how)?'gen':/陸送/.test(how)?'riku':/引き取り|納車/.test(how)?'pick':'';
+    if(kc) t.classList.add('k-'+kc);
+    var kd=el('div','kind'), lab={pick:'引き取り',gen:'現車確認',riku:'陸送',arr:'入庫',shk:'車検',reg:'登録'}[kc]; if(lab){ kd.appendChild(el('b','',lab)); var rest=how.replace(lab,'').replace(/^[（(：:]|[）)]$/g,''); if(rest) kd.appendChild(document.createTextNode(rest)); } else kd.textContent=how;
+    if(d&&coll==='pickups'){ kd.classList.add('inst'); s.insertBefore(kd,s.firstChild); } else b.appendChild(kd);
+    var c;
+    var known=(coll==='shaken')?carFromOthers(r):null;
+    if(coll==='shaken'&&(!r.car||looksPlate(r.car)||/[？?]/.test(r.car))){ var pl=r.plate||(looksPlate(r.car)?r.car.replace(/^.*[（(]|[）)].*$/g,''):''); c=el('div','car',known?known.car:'車検証の情報'); if(pl) c.appendChild(el('small','','ナンバー '+plateFmt(pl))); if(r.chassis) c.appendChild(el('small','','車台番号 '+String(r.chassis).replace(/^-/,'…'))); else if(r.tail) c.appendChild(el('small','','車台番号 下3桁 '+r.tail)); }
+    else { c=el('div','car',r.car||''); if(r.chassis) c.appendChild(el('small','','車台番号 '+r.chassis)); else if(r.tail) c.appendChild(el('small','','下3桁 '+r.tail+'（車検証で確かめ前）')); if(r.plate) c.appendChild(el('small','','ナンバー '+plateFmt(r.plate))); }
+    b.appendChild(c);
+    if(r.who){ var wd=el('div','who',r.who); if(r.yahoo_name&&r.yahoo_name!==r.who) wd.appendChild(el('small','','ヤフオク：'+r.yahoo_name)); else if(!r.meigi_ok&&coll==='pickups') wd.appendChild(el('small','','ヤフオクの呼び名')); b.appendChild(wd); } if(r.from) b.appendChild(el('div','meta',r.from));
+    if(coll==='pickups'&&!/現車確認/.test(r.how||'')){ var ig=el('div','idline'); [['ID',aidTxt(r)],['終了',endTxt(r)]].forEach(function(x){ var sp=el('span'); sp.appendChild(el('span','k',x[0]+' ')); sp.appendChild(el('span','v'+(x[1]?'':' miss'),x[1]||'未確認')); ig.appendChild(sp); }); b.appendChild(ig); }
+    if(r.handover){ var hb=el('div','hand','引き渡しの時：'+r.handover); b.appendChild(hb); }
+    if(coll==='shaken'&&isShk(r)){ var gp=genteiPrev(r); if(gp.length){ var lastG=gp[gp.length-1], ld=jst(lastG.date); b.appendChild(el('div','hand','限定車検：'+(gp.length+1)+'回目の受験です（前回 '+(ld?md(ld).d+md(ld).w:'日にち不明')+' に限定車検）')); } }
+    if(coll==='shaken'&&r.done&&r.result){ b.appendChild(el('div','meta','結果：'+({pass:'合格',none:'未受験',gentei:'限定車検'})[r.result])); }
+    if(coll==='shaken'&&r.opts){ var op=el('div','pills'); op.appendChild(el('span','pill '+(r.opts.zeidome?'wait':''),'税止め '+(r.opts.zeidome?'あり':'なし'))); op.appendChild(el('span','pill '+(r.opts.plate_change?'wait':''),'ナンバー変更 '+(r.opts.plate_change?'あり':'なし'))); b.appendChild(op); }
+    if(coll==='shaken'&&!r.done&&isShk(r)){ [maintWarn(r),needWarn(r)].forEach(function(mw){ if(mw){ b.appendChild(el('div','alert',mw)); t.classList.add('warned'); } }); }
+    var ps=el('div','pills'); if(coll==='pickups'&&!r.done&&(r.docs||{}).plate) ps.appendChild(el('span','pill go','新ナンバー着'));  (r.tags||[]).forEach(function(x){ if(!x||!x.t||/引き取り待ち/.test(x.t)) return; ps.appendChild(el('span','pill'+(x.k==='go'?' go':x.k==='wait'?' wait':''),zumi(x.t))); }); if(ps.children.length) b.appendChild(ps);
+    if(r.note) b.appendChild(el('div','meta note1','備考：'+zumi(r.note)));
+    var row=el('div','row');
+    if(coll==='shaken'&&isShk(r)){
+      // 車検の結果：合格／未受験／限定車検。どれかを押すと「済み」になり、当日はグレーで残る。もう一度押すと戻る
+      [['pass','合格'],['none','未受験'],['gentei','限定車検']].forEach(function(rs){ var ck=check(rs[1],r.result===rs[0],function(v){ return put('shaken',r.id,{result:v?rs[0]:'',done:v,done_at:v?new Date().toISOString():''}); }); row.appendChild(ck); });
+      [['in','要整備・自社','自社整備'],['out','要整備・外注','外注整備']].forEach(function(kk){
+        var has=D.maint.some(function(m){ return !m.hide&&m.from_shaken===r.id&&(m.kind||'in')===kk[0]; });
+        var bt=el('button','btn'+(has?' on':''),kk[1]+(has?' ✓':'')); bt.type='button';
+        bt.addEventListener('click',function(){ if(has){ toast('「'+kk[2]+'」のタブに入っています'); return; } bt.disabled=true;
+          mkFix(b,kk[2]+'に入れる','何が壊れているか（例：ブレーキの効きが弱い）','',function(tx){
+            return db.collection('maint').add({kind:kk[0],car:r.car||'',tail:r.tail||'',chassis:r.chassis||'',note:tx,steps:{},done:false,from_shaken:r.id,src:'車検から',added_at:new Date().toISOString()}).then(function(){ toast('「'+kk[2]+'」のタブに入れました'); }); }); });
+        row.appendChild(bt); });
+    } else {
+      var mainChk=check(coll==='arrivals'?'到着した':coll==='shaken'?'登録 済':'済',r.done,function(v){ return put(coll,r.id,{done:v,done_at:v?new Date().toISOString():''}).then(function(){ if(coll==='arrivals') return v?toStock(r):unStock(r); }); }); mainChk.classList.add('main'); row.appendChild(mainChk);
+    }
+    if(coll==='pickups'&&kindOf(r)==='riku'){ var rs=rikuSum(r); if(rs) b.appendChild(el('div','hand',rs)); if(!r.done){ var rb=el('button','btn','陸送の手配'); rb.type='button'; rb.addEventListener('click',function(){ rb.disabled=true; rikuBox(b,r); }); row.appendChild(rb); } }
+    if(!r.done){ var tb=el('button','btn ghost','日時を変える'); tb.type='button'; tb.addEventListener('click',function(){ tb.disabled=true; timeBox(b,coll,r); }); row.appendChild(tb); }
+    if(r.done) row.appendChild(del(coll,r));
+    if(coll==='pickups'&&ps.parentNode===b&&ig&&ig.parentNode===b){ b.removeChild(ps); ps.classList.add('inrow'); ig.appendChild(ps); }
+    b.appendChild(row);
+    t.appendChild(s); t.appendChild(b); return t;
+  }
+  // ---- 未出品：洗車等（パテ・清掃・洗車・写真）と車検点検（完了）の2つのタブ（社長 11/13 12:18）
+  var stockSub='wash', openReady=false, openShk=false; try{ var ss0=localStorage.getItem('sb-ssub'); if(ss0==='wash'||ss0==='shk'||ss0==='wait') stockSub=ss0; }catch(e){}
+  var WASH4=[['putty','パテ'],['clean','清掃'],['wash','洗車'],['photo','写真']];
+  function ready4(r){ var st=r.steps||{}; return WASH4.every(function(x){ return !!st[x[0]]; }); }
+  // 入庫で「到着した」→ 未出品に入れる（同じ車がもう未出品にあれば入れない）（社長 11/13 12:49）
+  function toStock(r){ var sid='st-'+r.id;
+    // 外した札（hide）があれば、作り直さずに戻す（社長 11/13 13:10「未出品に入らなくなった」）
+    var back=D.stock.filter(function(x){ return x.hide&&!x.done&&(x.id===sid||x.from_arrival===r.id); });
+    if(back.length) return put('stock',back[0].id,{hide:false,hide_at:'',hide_reason:''}).then(function(){ toast('未出品に戻しました'); });
+    if(D.stock.some(function(x){ return !x.hide&&(x.id===sid||x.from_arrival===r.id||(r.chassis&&x.chassis&&norm(x.chassis)===norm(r.chassis))); })) return Promise.resolve();
+    var o={car:r.car||'',tail:r.tail||'',chassis:r.chassis||'',steps:{},done:false,from_arrival:r.id,src:'入庫から',added_at:new Date().toISOString(),note:r.from?('入庫：'+r.from):''}; if(r.shaken_until) o.shaken_until=r.shaken_until;
+    return db.doc('stock/'+sid).set(o).then(function(){ toast('未出品に入れました'); }); }
+  // 車検点検がいるか：車検なし・期限が1年未満・期限が分からない車は「いる」。1年以上ある車は「いらない」。「車検を受けない」車は出さない
+  // 「到着した」を外した・入庫を消した時：入庫から自動で入れた未出品の札を外す（まだ出品していない物だけ）（社長 11/13 13:06）
+  function unStock(r){ var hit=D.stock.filter(function(x){ return !x.hide&&!x.done&&(x.id==='st-'+r.id||x.from_arrival===r.id); }); if(!hit.length) return Promise.resolve();
+    return Promise.all(hit.map(function(x){ return put('stock',x.id,{hide:true,hide_at:new Date().toISOString(),hide_reason:'入庫の「到着した」を外した'}); })).then(function(){ toast('未出品からも外しました'); }); }
+  function shkLeft(r){ var u=r.shaken_until; if(!u||u==='なし') return null; var d=jst(u); return d?daysTo(d):null; }
+  // 線：今月の1日の1年後（社長 11/13 12:57「9年11月1日まであれば受けない／12月1日以降は9年12月1日まであれば受けない」）
+  function shkLine(){ var t=ymd(new Date()).split('-'); return (Number(t[0])+1)+'-'+t[1]+'-01'; }
+  function reiwa(ds){ var p=ds.split('-'); return 'R'+(Number(p[0])-2018)+'/'+Number(p[1])+'/'+Number(p[2]); }
+  function longShk(r){ var u=r.shaken_until; return !!u&&u!=='なし'&&/^\d{4}-\d{2}-\d{2}$/.test(u)&&u>=shkLine(); }
+  function needShk(r){ var st=r.steps||{}; if(st.no_shaken) return false; return !longShk(r); }
+  function shkTxt(r){ if(r.shaken_until==='なし') return '車検なし（車検点検いる）'; var u=r.shaken_until; if(!u||!/^\d{4}-\d{2}-\d{2}$/.test(u)) return '車検の期限 未確認'; return '車検 '+reiwa(u)+' まで（'+(longShk(r)?reiwa(shkLine())+' 以降まであるので車検を受けない車':reiwa(shkLine())+' より前なので車検点検いる')+'）'; }
+  // ---- 車検・登録の「未予約」（社長 12:54「未予約かな」）：未出品で車検点検が完了した車のうち、まだ車検の予約が無い車（社長 11/13 12:54）
+  var shkSub='plan'; try{ var sh0=localStorage.getItem('sb-shsub'); if(sh0==='plan'||sh0==='wait') shkSub=sh0; }catch(e){}
+  function digits(x){ return String(x||'').replace(/[^0-9]/g,''); }
+  function chMatch(a,b){ var da=digits(a.chassis), db2=digits(b.chassis); if(da.length>=6&&db2.length>=6) return da.slice(-6)===db2.slice(-6); var ta=a.tail||(da?da.slice(-3):''), tb=b.tail||(db2?db2.slice(-3):''); return !!ta&&String(ta)===String(tb)&&!!norm(a.car)&&norm(a.car).slice(0,2)===norm(b.car).slice(0,2); }
+  function hasShkRes(r){ return D.shaken.some(function(x){ return !x.hide&&!x.done&&isShk(x)&&chMatch(r,x); }); }
+  // 車検予約の車台番号から、未出品・入庫・引き渡しにある同じ車の車種を探す（車台番号の下6桁が同じ時だけ）
+  function carFromOthers(r){ if(digits(r.chassis).length<6) return null; var src=[['stock','未出品'],['arrivals','入庫'],['pickups','引き渡し']];
+    for(var i=0;i<src.length;i++){ var hit=D[src[i][0]].filter(function(x){ return !x.hide&&x.car&&digits(x.chassis).length>=6&&digits(x.chassis).slice(-6)===digits(r.chassis).slice(-6); }); if(hit.length===1) return {car:hit[0].car.replace(/（.*?）/g,''),where:src[i][1]}; } return null; }
+  function shkWaitList(){ return D.stock.filter(function(r){ return !r.hide&&!r.done&&needShk(r)&&(r.steps||{}).shaken&&!hasShkRes(r); }); }
+  function shkWaitCard(r){ var t=el('article','tk k-shk'), b=el('div','body'); b.appendChild(el('div','kind','未予約（車検点検 完了）'));
+    var c=el('div','car',r.car||''); if(r.chassis) c.appendChild(el('small','','車台番号 '+r.chassis)); else c.appendChild(el('small','miss','車台番号 未確認')); b.appendChild(c);
+    b.appendChild(el('div','meta',shkTxt(r)));
+    var row=el('div','row'), bt=el('button','btn go','車検の予約を足す'); bt.type='button'; bt.addEventListener('click',function(){ shkSub='plan'; render(); $('f-car').value=r.car||''; $('f-tail').value=r.tail||digits(r.chassis).slice(-3); $('addbox').open=true; $('f-date').focus(); toast('日付と場所を入れて「足す」を押してください'); }); row.appendChild(bt);
+    b.appendChild(row); t.appendChild(b); return t; }
+  function stockCard(r,mode){
+    var st=r.steps||{}, t=el('article','tk'+(r.done?' done':'')), b=el('div','body');
+    var c=el('div','car',r.car||''); if(r.chassis) c.appendChild(el('small','','車台番号 '+r.chassis)); else if(r.tail) c.appendChild(el('small','','車台番号 下3桁 '+r.tail+'（車検証で確かめ前）')); else c.appendChild(el('small','miss','車台番号 未確認')); if(r.plate) c.appendChild(el('small','','ナンバー '+plateFmt(r.plate))); b.appendChild(c);
+    var m=[]; if(r.vendor) m.push(r.vendor); if(r.note) m.push('備考：'+zumi(r.note)); if(m.length) b.appendChild(el('div','meta',m.join('／')));
+    var sk=el('div','meta',shkTxt(r)); if(!r.shaken_until) sk.className='meta miss'; b.appendChild(sk);
+    var pills=el('div','pills'); pills.appendChild(el('span','pill'+(ready4(r)?' go':' wait'),'洗車等 '+WASH4.filter(function(x){return st[x[0]]}).length+'/4')); pills.appendChild(el('span','pill'+(!needShk(r)?'':st.shaken?' go':' wait'),st.no_shaken?'車検を受けない車':!needShk(r)?'車検を受けない車（車検が残っている）':st.shaken?'車検点検 完了':'車検点検 まだ')); b.appendChild(pills);
+    if(!r.done&&st.no_shaken){ var so2=shakenOf(r); if(so2){ b.appendChild(el('div','alert','「車検を受けない」車なのに、'+so2)); t.classList.add('warned'); } }
+    var row=el('div','row');
+    function step(k,lab){ return check(lab,st[k],function(v){ var p={steps:{}}; p.steps[k]=v; return put('stock',r.id,p); }); }
+    if(mode==='wash'||mode==='ready'){ WASH4.forEach(function(x){ row.appendChild(step(x[0],x[1])); }); }
+    if(mode==='shk'||mode==='shkdone'){ var mc=step('shaken','完了'); mc.classList.add('main'); row.appendChild(mc); }
+    if(mode==='wash'||mode==='shk'){
+      [['in','要整備・自社','自社整備'],['out','要整備・外注','外注整備']].forEach(function(kk){
+        var has=D.maint.some(function(x){ return !x.hide&&x.from_stock===r.id&&(x.kind||'in')===kk[0]; });
+        var bt=el('button','btn'+(has?' on':''),kk[1]+(has?' ✓':'')); bt.type='button';
+        bt.addEventListener('click',function(){ if(has){ toast('「'+kk[2]+'」のタブに入っています'); return; } bt.disabled=true;
+          mkFix(b,kk[2]+'に入れる','何が壊れているか（例：エアコンが冷えない）','',function(tx){
+            return db.collection('maint').add({kind:kk[0],car:r.car||'',tail:r.tail||'',chassis:r.chassis||'',note:tx,steps:{},done:false,from_stock:r.id,src:'未出品から',added_at:new Date().toISOString()}).then(function(){ var p={steps:{}}; p.steps['needfix_'+kk[0]]=true; toast('「'+kk[2]+'」のタブに入れました'); return put('stock',r.id,p); }); }); });
+        row.appendChild(bt); }); }
+    if(mode==='ready'||mode==='listed'){ var lc=check('出品した',r.done,function(v){ return put('stock',r.id,{done:v,done_at:v?new Date().toISOString():''}); }); lc.classList.add('main'); row.appendChild(lc); }
+    if(!r.done){ var eb=el('button','btn ghost','車検の期限を入れる'); eb.type='button'; eb.addEventListener('click',function(){ eb.disabled=true; var box=el('div','fixbox'), di=document.createElement('input'); di.type='date'; di.value=(r.shaken_until&&r.shaken_until!=='なし')?r.shaken_until:''; di.setAttribute('aria-label','車検の期限');
+        var ok=el('button','btn go','保存'); ok.type='button'; ok.addEventListener('click',function(){ if(!di.value){ di.focus(); return; } ok.disabled=true; put('stock',r.id,{shaken_until:di.value}).catch(function(e){ ok.disabled=false; fail(e); }); });
+        var nb=el('button','btn','車検なし'); nb.type='button'; nb.addEventListener('click',function(){ nb.disabled=true; put('stock',r.id,{shaken_until:'なし'}).catch(function(e){ nb.disabled=false; fail(e); }); });
+        box.appendChild(di); box.appendChild(ok); box.appendChild(nb); b.appendChild(box); }); row.appendChild(eb); }
+    if(r.done) row.appendChild(del('stock',r));
+    b.appendChild(row); t.appendChild(b); return t;
+  }
+  function corner(L,list,title,isOpen,onT,card){ if(!list.length) return; var dz=document.createElement('details'); dz.className='donez'; dz.open=isOpen; dz.addEventListener('toggle',function(){ onT(dz.open); }); var sm=document.createElement('summary'); sm.textContent=title; dz.appendChild(sm); var dl=el('div','list'); list.forEach(function(r){ dl.appendChild(card(r)); }); dz.appendChild(dl); L.appendChild(dz); }
+  function renderStock(L){
+    var act=D.stock.filter(function(r){ return !r.hide&&!r.done; }).sort(function(a,b){ return String(a.added_at||'').localeCompare(String(b.added_at||'')); });
+    var wash=act.filter(function(r){ return !ready4(r); }), rdy=act.filter(ready4), shk=act.filter(function(r){ return needShk(r)&&!(r.steps||{}).shaken; }), shkd=act.filter(function(r){ return needShk(r)&&(r.steps||{}).shaken; });
+    var sb=el('div','kinds'); [['wash','洗車等',wash.length],['shk','車検点検',shk.length],['wait','出品待ち',rdy.length]].forEach(function(k){ var bt=el('button','',k[1]+' '+k[2]); bt.type='button'; bt.setAttribute('aria-pressed',String(stockSub===k[0])); bt.addEventListener('click',function(){ stockSub=k[0]; try{localStorage.setItem('sb-ssub',stockSub)}catch(e){} render(); }); sb.appendChild(bt); }); L.appendChild(sb);
+    if(stockSub==='wash'){
+      if(!wash.length) L.appendChild(el('div','empty','洗車等がまだの車はありません。'));
+      wash.forEach(function(r){ L.appendChild(stockCard(r,'wash')); });
+      if(rdy.length) L.appendChild(el('div','empty','パテ・清掃・洗車・写真が全部済んだ車は「出品待ち」のタブに移ります（'+rdy.length+'台）。'));
+    } else if(stockSub==='wait'){
+      if(!rdy.length) L.appendChild(el('div','empty','出品待ちの車はありません。（パテ・清掃・洗車・写真が全部済むと、ここに入ります）'));
+      rdy.forEach(function(r){ L.appendChild(stockCard(r,'ready')); });
+    } else {
+      if(!shk.length) L.appendChild(el('div','empty','車検点検がまだの車はありません。（車検が残っている車（'+reiwa(shkLine())+' 以降まで）と「車検を受けない」車は、ここに出ません）'));
+      shk.forEach(function(r){ L.appendChild(stockCard(r,'shk')); });
+      corner(L,shkd,'車検点検 完了コーナー（'+shkd.length+'台）　まちがえた時は「完了」を外すと上に戻ります',openShk,function(v){openShk=v;},function(r){ return stockCard(r,'shkdone'); });
+    }
+    var ls=D.stock.filter(function(r){ return !r.hide&&r.done; }).sort(function(a,b){ return String(b.done_at||'').localeCompare(String(a.done_at||'')); });
+    corner(L,ls,'出品済コーナー（'+ls.length+'台）　まちがえた時は「出品した」を外すと上に戻ります',openListed,function(v){openListed=v;},function(r){ return stockCard(r,'listed'); });
+  }
+  function stepCard(coll,kind,r){
+    var steps=STEPS[kind], t=el('article','tk'+(r.done?' done':'')), b=el('div','body');
+    var c=el('div','car',r.car||''); if(r.chassis) c.appendChild(el('small','','車台番号 '+r.chassis)); else if(r.tail) c.appendChild(el('small','','車台番号 下3桁 '+r.tail+'（車検証で確かめ前）')); else c.appendChild(el('small','miss','車台番号 未確認')); if(r.plate) c.appendChild(el('small','','ナンバー '+plateFmt(r.plate))); b.appendChild(c);
+    if(coll==='maint'){ b.appendChild(el('div','fault','故障：'+(r.note||'（まだ書いていません）'))); if(r.vendor) b.appendChild(el('div','meta','外注先：'+r.vendor)); }
+    else { var m=[]; if(r.vendor) m.push(r.vendor); if(r.note) m.push('備考：'+r.note); if(m.length) b.appendChild(el('div','meta',m.join('／'))); }
+    if(coll==='stock'&&!r.done&&(r.steps||{}).no_shaken){ var so2=shakenOf(r); if(so2){ b.appendChild(el('div','alert','「車検を受けない」車なのに、'+so2)); t.classList.add('warned'); } }
+    if(coll==='maint'&&!r.done){ var so=shakenOf(r); if(so){ b.appendChild(el('div','alert',so+'（それまでに整備を終える）')); t.classList.add('warned'); } }
+    var row=el('div','row'), st=r.steps||{}, last=steps[steps.length-1][0];
+    steps.forEach(function(sp){ if(coll==='stock'&&sp[0]==='shaken'&&st.no_shaken){ var ng=el('span','chk off','車検点検（受けない車）'); row.appendChild(ng); return; } row.appendChild(check(sp[1],st[sp[0]],function(v){ var p={steps:{}}; p.steps[sp[0]]=v;
+      if(coll==='maint'&&sp[0]===last){ p.done=v; p.done_at=v?new Date().toISOString():''; }
+      if(coll==='maint'&&v&&sp[0]==='parts_ordered') p.steps.parts_none=false; if(coll==='maint'&&v&&sp[0]==='parts_none') p.steps.parts_ordered=false;
+      return put(coll,r.id,p); })); });
+    function fixBox(title,place,init,onSave){ var box=el('div','fixbox'), inp=document.createElement('input'); inp.maxLength=200; inp.placeholder=place; inp.value=init||''; inp.setAttribute('aria-label',title);
+      var ok=el('button','btn go',title); ok.type='button'; ok.addEventListener('click',function(){ var tx=inp.value.trim(); if(!tx){ inp.focus(); return; } ok.disabled=true; onSave(tx).catch(function(e){ ok.disabled=false; fail(e); }); });
+      box.appendChild(inp); box.appendChild(ok); b.appendChild(box); inp.focus(); }
+    if(coll==='stock'){
+      [['in','要整備・自社','自社整備'],['out','要整備・外注','外注整備']].forEach(function(kk){
+        var has=D.maint.some(function(m){ return !m.hide&&m.from_stock===r.id&&(m.kind||'in')===kk[0]; });
+        var bt=el('button','btn'+(has?' on':''),kk[1]+(has?' ✓':'')); bt.type='button';
+        bt.addEventListener('click',function(){ if(has){ toast('「'+kk[2]+'」のタブに入っています'); return; } bt.disabled=true;
+          fixBox(kk[2]+'に入れる','何が壊れているか（例：エアコンが冷えない）','',function(tx){
+            return db.collection('maint').add({kind:kk[0],car:r.car||'',tail:r.tail||'',chassis:r.chassis||'',note:tx,steps:{},done:false,from_stock:r.id,src:'未出品から',added_at:new Date().toISOString()}).then(function(){ var p={steps:{}}; p.steps['needfix_'+kk[0]]=true; toast('「'+kk[2]+'」のタブに入れました'); return put('stock',r.id,p); }); }); });
+        row.appendChild(bt); });
+      row.appendChild(check('出品した',r.done,function(v){ return put(coll,r.id,{done:v,done_at:v?new Date().toISOString():''}); }));
+    }
+    if(coll==='maint'){ var eb=el('button','btn ghost','故障の内容を直す'); eb.type='button'; eb.addEventListener('click',function(){ eb.disabled=true; fixBox('保存','何が壊れているか',r.note||'',function(tx){ return put('maint',r.id,{note:tx}); }); }); row.appendChild(eb); }
+    if(r.done) row.appendChild(del(coll,r)); b.appendChild(row); t.appendChild(b); return t;
+  }
+  // 登録待ち＝「書類待ち」（住民票がまだ）と「ナンバー待ち」（住民票は来た・新ナンバーがまだ）の2つ（社長 11/13 15:49）
+  var docSub='shorui', openPlate=false; try{ var ds0=localStorage.getItem('sb-dsub'); if(ds0==='shorui'||ds0==='plate') docSub=ds0; }catch(e){}
+  function docWait(){ return D.pickups.filter(function(r){ var dc=r.docs||{}; return r.shorui===true && !r.hide && !r.done && !dc.juminhyo; }); }
+  function plateWait(){ return D.pickups.filter(function(r){ var dc=r.docs||{}; return !r.hide && !r.done && !/現車確認/.test(r.how||'') && dc.juminhyo===true && dc.plate!==true; }); }
+  function plateDone(){ return D.pickups.filter(function(r){ var dc=r.docs||{}; return !r.hide && dc.plate===true && !!r.plate_at; }); }
+  function hm(at){ var d=at?new Date(at):null; return (d&&!isNaN(d))?md(d).d+md(d).w+' '+new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hour12:false}).format(d):''; }
+  function docCard(r){
+    var dc=r.docs||{}, stage=(dc.juminhyo===true)?(dc.plate===true?'done':'plate'):'shorui', t=el('article','tk'+(stage==='done'?' done':'')), b=el('div','body');
+    b.appendChild(el('div','kind',r.how||'引き取り')); var c=el('div','car',(r.car||'').replace(/（.*?）/g,'')); if(r.tail) c.appendChild(el('small','','車台番号 下3桁 '+r.tail)); b.appendChild(c);
+    var real=r.real_name||(r.meigi_ok?r.who:''), yid=r.yahoo_id||r.yahoo_name||(!r.meigi_ok?r.who:''), ps=el('div','idgrid');
+    [['オークションID',aidTxt(r)],['終了日',endTxt(r)],['本名',real],['自治体',r.city],['ヤフオクID',yid],['希望ナンバー',kibouTxt(r)]].forEach(function(x){ var d=el('div'); d.appendChild(el('span','k',x[0])); d.appendChild(el('span','v'+(x[1]?'':' miss'),x[1]?String(x[1]).replace(/様$/,''):'未確認')); ps.appendChild(d); }); b.appendChild(ps);
+    if(r.docs_note) b.appendChild(el('div','meta',r.docs_note));
+    if(dc.juminhyo) b.appendChild(el('div','ready','住民票 着：'+(hm(r.docs_at)||'（いつ来たかの記録なし）')));
+    if(dc.plate===true) b.appendChild(el('div','ready','新ナンバー 着：'+(hm(r.plate_at)||'（いつ来たかの記録なし）')));
+    var row=el('div','row');
+    if(stage==='shorui'){
+      var jc=check('住民票 着',false,function(v){ var now=new Date().toISOString(), p={docs:{juminhyo:v},docs_at:v?now:''}; p.docs_log=(r.docs_log||[]).concat([{t:v?'住民票 着':'住民票 着を外した',at:now}]); return put('pickups',r.id,p).then(function(){ if(v) toast('ナンバー待ちに移しました'); }); }); jc.classList.add('main'); row.appendChild(jc);
+    } else {
+      var pc=check('新ナンバー 着',dc.plate===true,function(v){ var now=new Date().toISOString(), p={docs:{plate:v},plate_at:v?now:''}; p.docs_log=(r.docs_log||[]).concat([{t:v?'新ナンバー 着':'新ナンバー 着を外した',at:now}]); return put('pickups',r.id,p); }); pc.classList.add('main'); row.appendChild(pc);
+      if(stage==='plate'){ var back=el('button','btn ghost','住民票 着を外す'); back.type='button'; back.addEventListener('click',function(){ var now=new Date().toISOString(); put('pickups',r.id,{docs:{juminhyo:false},docs_at:'',docs_log:(r.docs_log||[]).concat([{t:'住民票 着を外した',at:now}])}).catch(fail); }); row.appendChild(back); }
+      if(stage==='done') row.appendChild(del('pickups',r));
+    }
+    b.appendChild(row); t.appendChild(b); return t;
+  }
+  function memoCard(r){
+    var t=el('article','tk'+(r.done?' done':'')), b=el('div','body');
+    b.appendChild(el('div','memo',r.text||'')); var m=[]; if(r.by) m.push(r.by); if(r.at){ var d=new Date(r.at); if(!isNaN(d)) m.push(md(d).d+' '+new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',hour12:false}).format(d)); }
+    if(m.length) b.appendChild(el('div','meta',m.join('／')));
+    var row=el('div','row'); row.appendChild(check('見た・対応した',r.done,function(v){ return put('memos',r.id,{done:v,done_at:v?new Date().toISOString():''}); })); if(r.done) row.appendChild(del('memos',r)); b.appendChild(row);
+    t.appendChild(b); return t;
+  }
+  function rowsOf(k){ if(k==='plan') return D.pickups.filter(function(r){ return !r.hide && !r.done && (jst(r.date) || /現車確認/.test(r.how||'') || /陸送/.test(r.how||'') || (r.docs||{}).plate); }); if(k==='stock') return D.stock.filter(function(r){ return !r.hide && !r.done; }); if(k==='arr') return D.arrivals.filter(function(r){ return !r.hide && !r.done; }); if(k==='shaken') return D.shaken.filter(function(r){ return !r.hide && !r.done; }); if(k==='memo') return D.memos.filter(function(r){ return !r.hide && !r.done; });
+    // 書類待ち：ヤフオク担当が「書類待ち」にした車（shorui:true）で、住民票がまだの物だけ（社長 11/13）
+    if(k==='docs') return docWait().concat(plateWait()); return D.maint.filter(function(r){ return (r.kind||'in')===k && !r.hide && !r.done; }); }
+  function render(){
+    KEYS.forEach(function(k){ $('tab-'+k).setAttribute('aria-selected',String(k===tab)); var nn=rowsOf(k).filter(function(r){ return !r.done}).length; $('n-'+k).textContent=nn; $('n-'+k).className=nn?'':'zero'; if(k==='shaken'&&rowsOf(k).some(function(r){return !r.done&&isShk(r)&&(maintWarn(r)||needWarn(r))})) $('n-'+k).className='bad'; });
+    var L=$('list'); L.textContent='';
+    var isP=(tab==='plan'), isA=(tab==='arr'), isM=(tab==='memo'), isS=(tab==='shaken');
+    $('l-kind').hidden=$('l-hand').hidden=!isP; $('l-time').hidden=!(isP||isS); $('l-skind').hidden=!isS; $('l-zei').hidden=$('l-pl').hidden=!(isS&&$('f-skind').value==='登録：名義変更'); $('l-uke').hidden=(tab!=='stock'); $('l-who').hidden=!(isP||isA||isM||isS); $('l-date').hidden=!(isP||isA||isS);
+    $('f-car').parentNode.hidden=$('f-tail').parentNode.hidden=isM; $('f-car').required=!isM; $('f-note').required=isM;
+    $('l-who').firstChild.nodeValue=isA?'どこから（会場）':isM?'書いた人':isS?'どこで（車検場・軽自動車検査協会 など）':'だれ';
+    $('l-note').firstChild.nodeValue=isM?'メモ':(tab==='in'||tab==='out')?'何が壊れているか（故障の内容）':'備考'; $('f-note').placeholder=isS?'例：書類は事務所の棚／ナンバーは希望番号 830':isM?'例：バッテリーが弱い':(tab==='in'||tab==='out')?'例：エアコンが冷えない／オイル漏れ':'例：積載車で来る';
+    $('addbox').hidden=(tab==='docs');
+    $('addsum').textContent={shaken:'＋ 車検・登録を足す',arr:'＋ 入庫予定を足す',memo:'＋ メモを書く',plan:'＋ 引渡・来客の予定を足す',stock:'＋ 未出品の車を足す',in:'＋ 自社の整備を足す',out:'＋ 外注の整備を足す'}[tab];
+    if(!ready){ L.appendChild(el('div','empty','読みこみ中…')); return; }
+    var rows=rowsOf(tab);
+    if(tab==='plan'){
+      var kb=el('div','kinds'); KINDS.forEach(function(k){ var n=k[0]==='all'?rows.length:rows.filter(function(r){return kindOf(r)===k[0]}).length, bt=el('button','',k[1]+' '+n); bt.type='button'; bt.setAttribute('aria-pressed',String(kindF===k[0]));
+        bt.addEventListener('click',function(){ kindF=k[0]; try{localStorage.setItem('sb-kind',kindF)}catch(e){} render(); }); kb.appendChild(bt); }); L.appendChild(kb);
+      if(kindF!=='all') rows=rows.filter(function(r){ return kindOf(r)===kindF; });
+      var dated=rows.filter(function(r){return jst(r.date)}).sort(function(a,b){ return (a.date+(a.time||'')).localeCompare(b.date+(b.time||'')); });
+      // 日時がまだ決まっていない札：終了日が古い順（終了日が分からない札は最後）（社長 11/13 15:47）
+      var und=rows.filter(function(r){return !jst(r.date)}).sort(function(a,b){ return String(a.end_date||'9999').localeCompare(String(b.end_date||'9999')) || (a.car||'').localeCompare(b.car||''); });
+      var lg=el('div','legend'); [['pick','引き取り'],['gen','現車確認'],['riku','陸送']].forEach(function(x){ var sp=el('span'); var i=el('i'); i.style.background='var(--k-'+x[0]+')'; sp.appendChild(i); sp.appendChild(document.createTextNode(x[1])); lg.appendChild(sp); }); L.appendChild(lg);
+      if(!dated.length) L.appendChild(el('div','empty','日時が決まっている予定はありません。')); var lastD=''; dated.forEach(function(r){ if(r.date!==lastD){ lastD=r.date; var dd=jst(r.date), n=daysTo(dd), h=el('h2','day',(n===0?'きょう':n===1?'あした':n<0?'済（前の日）':md(dd).d+md(dd).w)); if(n===0||n===1||n<0) h.appendChild(el('small','',md(dd).d+md(dd).w)); var cnt=dated.filter(function(x){return x.date===r.date&&!x.done}).length; h.appendChild(el('small','',cnt+'件')); L.appendChild(h); } L.appendChild(planCard(r)); });
+      var wn=D.pickups.filter(function(r){ return !r.hide&&!r.done&&!jst(r.date)&&!/現車確認/.test(r.how||'')&&!(r.docs||{}).plate; }).length;
+      if(und.length){ var hu=el('h2','day','日時がまだ決まっていない'); hu.appendChild(el('small','',und.length+'件')); L.appendChild(hu); und.forEach(function(r){ L.appendChild(planCard(r)); }); }
+      if(wn&&(kindF==='all'||kindF==='pick')) L.appendChild(el('div','empty','新ナンバー待ちの車が '+wn+' 台あります（「登録待ち」→「ナンバー待ち」）。着いたらここに出ます。'));
+      var dn=D.pickups.filter(function(r){ return !r.hide&&r.done&&(kindF==='all'||kindOf(r)===kindF); }).sort(function(a,b){ return String(b.done_at||'').localeCompare(String(a.done_at||'')); });
+      if(dn.length){ var dz=document.createElement('details'); dz.className='donez'; dz.open=openDone; dz.addEventListener('toggle',function(){ openDone=dz.open; }); var sm=document.createElement('summary'); sm.textContent='済コーナー（'+dn.length+'件）　まちがえた時は「済」を外すと上に戻ります'; dz.appendChild(sm);
+        var dlist=el('div','list'); dn.forEach(function(r){ dlist.appendChild(planCard(r)); }); dz.appendChild(dlist); L.appendChild(dz); }
+    } else if(tab==='arr'){
+      rows.sort(function(a,b){ return (a.done?1:0)-(b.done?1:0) || String(a.date||'9999').localeCompare(String(b.date||'9999')); });
+      if(!rows.length) L.appendChild(el('div','empty','入庫予定は入っていません。下の「足す」から入れられます。')); rows.forEach(function(r){ L.appendChild(planCard(r,'arrivals')); });
+      var az=D.arrivals.filter(function(r){ return !r.hide&&r.done; }).sort(function(a,b){ return String(b.done_at||'').localeCompare(String(a.done_at||'')); });
+      corner(L,az,'到着済コーナー（'+az.length+'台）　まちがえた時は「到着した」を外すと上に戻ります',openArr,function(v){openArr=v;},function(r){ return planCard(r,'arrivals'); });
+    } else if(tab==='shaken'){
+      var kw=shkWaitList(), sbt=el('div','kinds'); [['plan','予定',rows.length],['wait','未予約',kw.length]].forEach(function(k){ var bt=el('button','',k[1]+' '+k[2]); bt.type='button'; bt.setAttribute('aria-pressed',String(shkSub===k[0])); bt.addEventListener('click',function(){ shkSub=k[0]; try{localStorage.setItem('sb-shsub',shkSub)}catch(e){} render(); }); sbt.appendChild(bt); }); L.appendChild(sbt);
+      if(shkSub==='wait'){
+        if(!kw.length) L.appendChild(el('div','empty','未予約の車はありません。（未出品で「車検点検」の「完了」を押すと、ここに入ります。車検の予約が入ると、ここから外れます）'));
+        kw.forEach(function(r){ L.appendChild(shkWaitCard(r)); });
+      } else {
+      rows.sort(function(a,b){ return (a.done?1:0)-(b.done?1:0) || String((a.date||'9999')+(a.time||'')).localeCompare(String((b.date||'9999')+(b.time||''))); });
+      var nw=rows.filter(function(r){return !r.done&&isShk(r)&&maintWarn(r)}).length; if(nw) L.appendChild(el('div','alert','整備がまだ終わっていない車が、車検の予約に '+nw+' 台あります。'));
+      var nx=rows.filter(function(r){return !r.done&&isShk(r)&&needWarn(r)}).length; if(nx) L.appendChild(el('div','alert','確かめてほしい車検の予約が '+nx+' 件あります（車検点検がまだ・車検を受けない車・引き渡し済み）。'));
+      var lg2=el('div','legend'); [['shk','車検（予備検査・中古新規）'],['reg','登録（予備検書き換え・名義変更）']].forEach(function(x){ var sp=el('span'); var i=el('i'); i.style.background='var(--k-'+x[0]+')'; sp.appendChild(i); sp.appendChild(document.createTextNode(x[1])); lg2.appendChild(sp); }); L.appendChild(lg2);
+      if(!rows.length) L.appendChild(el('div','empty','車検・登録の予定は入っていません。下の「足す」から入れられます。')); rows.forEach(function(r){ L.appendChild(planCard(r,'shaken')); });
+      var sz=D.shaken.filter(function(r){ return !r.hide&&r.done; }).sort(function(a,b){ return String(b.done_at||'').localeCompare(String(a.done_at||'')); });
+      corner(L,sz,'車検・登録 済コーナー（'+sz.length+'件）　まちがえた時は押したボタンを外すと上に戻ります',openShkz,function(v){openShkz=v;},function(r){ return planCard(r,'shaken'); });
+      }
+    } else if(tab==='docs'){
+      var dw=docWait(), pw=plateWait(), byEnd=function(a,b){ return String(a.end_date||'9999').localeCompare(String(b.end_date||'9999')) || (a.car||'').localeCompare(b.car||''); };
+      dw.sort(byEnd); pw.sort(byEnd);
+      var dsb=el('div','kinds'); [['shorui','書類待ち',dw.length],['plate','ナンバー待ち',pw.length]].forEach(function(k){ var bt=el('button','',k[1]+' '+k[2]); bt.type='button'; bt.setAttribute('aria-pressed',String(docSub===k[0])); bt.addEventListener('click',function(){ docSub=k[0]; try{localStorage.setItem('sb-dsub',docSub)}catch(e){} render(); }); dsb.appendChild(bt); }); L.appendChild(dsb);
+      if(docSub==='shorui'){
+        if(!dw.length) L.appendChild(el('div','empty','書類待ちの車はありません。')); dw.forEach(function(r){ L.appendChild(docCard(r)); });
+        L.appendChild(el('div','note','「住民票 着」を押すと「ナンバー待ち」に移ります。'));
+      } else {
+        if(!pw.length) L.appendChild(el('div','empty','ナンバー待ちの車はありません。')); pw.forEach(function(r){ L.appendChild(docCard(r)); });
+        var pd=plateDone().sort(function(a,b){ return String(b.plate_at||'').localeCompare(String(a.plate_at||'')); });
+        corner(L,pd,'登録 済コーナー（'+pd.length+'台）　まちがえた時は「新ナンバー 着」を外すと上に戻ります',openPlate,function(v){openPlate=v;},docCard);
+      }
+    } else if(tab==='memo'){
+      rows.sort(function(a,b){ return (a.done?1:0)-(b.done?1:0) || String(b.at||'').localeCompare(String(a.at||'')); });
+      if(!rows.length) L.appendChild(el('div','empty','メモはありません。気づいたことを下の「メモを書く」から残せます。')); rows.forEach(function(r){ L.appendChild(memoCard(r)); });
+      var mz=D.memos.filter(function(r){ return !r.hide&&r.done; }).sort(function(a,b){ return String(b.done_at||'').localeCompare(String(a.done_at||'')); });
+      if(mz.length){ var md2=document.createElement('details'); md2.className='donez'; md2.open=openMemo; md2.addEventListener('toggle',function(){ openMemo=md2.open; }); var ms=document.createElement('summary'); ms.textContent='完了済コーナー（'+mz.length+'件）　まちがえた時は「見た・対応した」を外すと上に戻ります'; md2.appendChild(ms);
+        var ml=el('div','list'); mz.forEach(function(r){ ml.appendChild(memoCard(r)); }); md2.appendChild(ml); L.appendChild(md2); }
+    } else if(tab==='stock'){ renderStock(L);
+    } else {
+      rows.sort(function(a,b){ return (a.done?1:0)-(b.done?1:0) || String(a.added_at||'').localeCompare(String(b.added_at||'')) || (a.car||'').localeCompare(b.car||''); });
+      if(!rows.length) L.appendChild(el('div','empty',{stock:'未出品の車は入っていません。下の「足す」から入れられます。',in:'自社の整備は入っていません。下の「足す」から入れられます。',out:'外注の整備は入っていません。下の「足す」から入れられます。'}[tab]));
+      rows.forEach(function(r){ L.appendChild(stepCard(tab==='stock'?'stock':'maint',tab,r)); });
+      if(tab==='stock'){ var ls=D.stock.filter(function(r){ return !r.hide&&r.done; }).sort(function(a,b){ return String(b.done_at||'').localeCompare(String(a.done_at||'')); });
+        if(ls.length){ var lz=document.createElement('details'); lz.className='donez'; lz.open=openListed; lz.addEventListener('toggle',function(){ openListed=lz.open; }); var lsm=document.createElement('summary'); lsm.textContent='出品済コーナー（'+ls.length+'台）　まちがえた時は「出品した」を外すと上に戻ります'; lz.appendChild(lsm);
+          var ll=el('div','list'); ls.forEach(function(r){ ll.appendChild(stepCard('stock','stock',r)); }); lz.appendChild(ll); L.appendChild(lz); } }
+      else { var mk=tab, fx=D.maint.filter(function(r){ return (r.kind||'in')===mk&&!r.hide&&r.done; }).sort(function(a,b){ return String(b.done_at||'').localeCompare(String(a.done_at||'')); });
+        if(fx.length){ var fz=document.createElement('details'); fz.className='donez'; fz.open=openFixed[mk]; fz.addEventListener('toggle',function(){ openFixed[mk]=fz.open; }); var fsm=document.createElement('summary'); fsm.textContent='整備済コーナー（'+fx.length+'台）　まちがえた時は「'+(mk==='out'?'完了':'整備済み')+'」を外すと上に戻ります'; fz.appendChild(fsm);
+          var fl=el('div','list'); fx.forEach(function(r){ fl.appendChild(stepCard('maint',mk,r)); }); fz.appendChild(fl); L.appendChild(fz); } }
+    }
+    $('stamp').textContent=meta&&meta.updated?('予定の一覧の最終更新：'+meta.updated+(meta.src?'（'+meta.src+'）':'')):'';
+  }
+  KEYS.forEach(function(k){ $('tab-'+k).addEventListener('click',function(){ tab=k; try{localStorage.setItem('sb-tab',k)}catch(e){} render(); }); });
+  $('reload').addEventListener('click',function(){ location.reload(); });
+  // 全画面ボタン（社長 11/13 15:57）。使えない画面（iPhone の Safari など）ではボタンを出さない
+  (function(){ var de=document.documentElement, fb=$('fullbtn'); var req=de.requestFullscreen||de.webkitRequestFullscreen; var on=function(){ return !!(document.fullscreenElement||document.webkitFullscreenElement); };
+    if(!req||!(document.fullscreenEnabled||document.webkitFullscreenEnabled)) return; fb.hidden=false;
+    var lab=function(){ fb.textContent=on()?'全画面をやめる':'全画面'; };
+    fb.addEventListener('click',function(){ try{ if(on()){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); } else { var r=req.call(de); if(r&&r.catch) r.catch(function(){ toast('この画面では全画面にできません'); }); } }catch(e){ toast('この画面では全画面にできません'); } });
+    document.addEventListener('fullscreenchange',lab); document.addEventListener('webkitfullscreenchange',lab); lab(); })();
+  $('f-skind').addEventListener('change',function(){ $('l-zei').hidden=$('l-pl').hidden=!(tab==='shaken'&&this.value==='登録：名義変更'); });
+  $('addform').addEventListener('submit',function(ev){
+    ev.preventDefault(); if(!db) return; var base={car:$('f-car').value.trim(), tail:$('f-tail').value.trim(), note:$('f-note').value.trim(), done:false, src:'手入力', added_at:new Date().toISOString()}, coll;
+    if(tab==='plan'){ coll='pickups'; base.how=$('f-kind').value; base.who=$('f-who').value.trim(); base.date=$('f-date').value||''; base.time=$('f-time').value.trim(); base.tags=[]; base.handover=$('f-hand').value.trim(); base.docs={}; }
+    else if(tab==='arr'){ coll='arrivals'; base.from=$('f-who').value.trim(); base.date=$('f-date').value||''; }
+    else if(tab==='shaken'){ coll='shaken'; base.how=$('f-skind').value; base.from=$('f-who').value.trim(); base.date=$('f-date').value||''; base.time=$('f-time').value.trim(); if(base.how==='登録：名義変更') base.opts={zeidome:$('f-zei').value==='あり',plate_change:$('f-pl').value==='あり'}; }
+    else if(tab==='memo'){ coll='memos'; base={text:$('f-note').value.trim(), by:$('f-who').value.trim(), at:new Date().toISOString(), done:false}; if(!base.text) return; }
+    else if(tab==='stock'){ coll='stock'; base.steps={no_shaken:$('f-uke').value==='受けない'}; } else { coll='maint'; base.kind=tab; base.steps={}; }
+    db.collection(coll).add(base).then(function(){ $('addform').reset(); $('addbox').open=false; }).catch(fail);
+  });
+  var timer=setTimeout(function(){ if(!ready){ ready=true; $('lead').textContent='一覧を読みこめませんでした。「更新」を押してください。'; render(); } },10000);
+
+  // ---- V19：社長が開いた時だけ、Dropbox の状態ファイルから写す（Claude を通さない）。社員の画面では何もしない
+  var SYNC_DIR='/YouTube_note共同成長/状態';
+  function deep(o,f,out){ out=out||[]; if(o&&typeof o==='object'){ if(f(o)) out.push(o); for(var k in o){ if(Object.prototype.hasOwnProperty.call(o,k)) deep(o[k],f,out); } } return out; }
+  function payloadOf(r){ if(!r) return null; if(r.payload!==undefined) return r.payload; if(r.structuredContent!==undefined) return r.structuredContent;
+    var t=(r.content||[]).filter(function(c){return c.type==='text'}).map(function(c){return c.text}).join(''); try{ return JSON.parse(t); }catch(e){ return t; } }
+  function kdate(s){ var m=/(\d{1,2})月(\d{1,2})日/.exec(s||''); if(!m) return ''; var n=new Date(), y=n.getFullYear(), mo=+m[1];
+    if(mo<n.getMonth()+1-6) y++; return y+'-'+('0'+mo).slice(-2)+'-'+('0'+m[2]).slice(-2); }
+  function newest(names,prefix){ var re=new RegExp('^'+prefix+'_状態_(\\d{8})_(\\d{4})'); var b=null,bk='';
+    names.forEach(function(e){ var m=re.exec(e.name||''); if(m&&/\.json$/.test(e.name)){ var k=m[1]+m[2]+e.name; if(k>bk){ bk=k; b=e; } } }); return b; }
+  function fetchNewest(mcp,ents,prefix){ var f=newest(ents,prefix); if(!f) return Promise.resolve(null);
+    return mcp.callTool('Dropbox','fetch',{id:f.id||f.path||f.path_display}).then(function(r2){ var p=payloadOf(r2), txt=(p&&typeof p==='object'&&typeof p.text==='string')?p.text:(typeof p==='string'?p:'');
+      try{ return JSON.parse(txt); }catch(e){ return null; } }).catch(function(){ return null; }); }
+  // V20：同じ車を1台だけ見つける（下3桁が同じで、車の名前の頭3字が同じ。2台以上・0台なら写さない）
+  function oneCar(list,x){ var t=String(x.tail||x.chassis_tail||'').replace(/[^0-9]/g,'').slice(-3), nm=norm(x.car||x.car_name||'').slice(0,3);
+    var hit=list.filter(function(r){ return !r.hide && !r.done && String(r.tail||(r.chassis?String(r.chassis).slice(-3):''))===t && t && (!nm || norm(r.car).indexOf(nm)===0 || nm.indexOf(norm(r.car).slice(0,3))===0); });
+    return hit.length===1?hit[0]:null; }
+  function syncNow(mcp,why){
+    var st=$('syncst'); if(st) st.textContent='写しています…';
+    return mcp.callTool('Dropbox','list_folder',{path:SYNC_DIR}).then(function(r){
+      var ents=deep(payloadOf(r),function(o){ return typeof o.name==='string' && (o.path_display||o.path||o.id); });
+      return Promise.all([fetchNewest(mcp,ents,'kei'),fetchNewest(mcp,ents,'ju'),fetchNewest(mcp,ents,'yahoo'),fetchNewest(mcp,ents,'invoice')]);
+    }).then(function(a){
+      var kei=a[0], ju=a[1], ya=a[2], inv=a[3], jobs=[], c={made:0,moved:0,arr:0,jumin:0,plate:0}, miss=[];
+      // 車検予約（kei）→ 車検・登録
+      if(kei&&kei.ok===true&&Array.isArray(kei.reservations)) kei.reservations.forEach(function(x){ if(!x||!x.no) return; var id='kr-'+String(x.no).replace(/[^0-9]/g,''); if(id==='kr-') return;
+          var d=kdate(x.day), tm=((x.round||'').replace('ラウンド','R'))+(x.uketsuke?' 受付 '+x.uketsuke.replace(/^0/,''):'');
+          var cur=D.shaken.filter(function(r){return r.id===id})[0];
+          if(!cur){ c.made++; jobs.push(db.doc('shaken/'+id).set({car:x.plate||'', tail:String(x.chassis||'').replace(/[^0-9]/g,'').slice(-3), chassis:x.chassis||'', how:'車検：'+(x.kind||'継続検査'), from:'', date:d, time:tm,
+              note:(x.office||'')+'。予約番号 '+x.no+'（車検予約サイトから自動で写した）', done:false, src:'kei 自動', added_at:new Date().toISOString()})); }
+          else if(!cur.done && !cur.hide && !cur.time_fixed && (cur.date!==d || cur.time!==tm)){ c.moved++; jobs.push(put('shaken',id,{date:d,time:tm})); } });
+      else miss.push('車検予約');
+      // 入庫予定（JU 仕入れ係）→ 入庫。新しい車だけ足す（人が付けた「到着した」は触らない）
+      if(ju&&ju.ok===true&&Array.isArray(ju.arrivals)) ju.arrivals.forEach(function(x){ if(!x) return; var key=String(x.chassis||x.lot||x.tail||'').replace(/[^0-9A-Za-z]/g,''); if(!key) return; var id='ju-'+key;
+          if(D.arrivals.some(function(r){return r.id===id})) return; c.arr++;
+          jobs.push(db.doc('arrivals/'+id).set({car:x.car||x.car_name||'', tail:String(x.tail||x.chassis||'').replace(/[^0-9]/g,'').slice(-3), chassis:x.chassis||'', from:x.venue||x.from||'', date:x.date||x.eta||'', note:'仕入れ係の状態ファイルから自動で写した', done:false, src:'ju 自動', added_at:new Date().toISOString()})); });
+      else miss.push('入庫予定');
+      // 住民票（ヤフオク係の docs_arrived）→ 書類待ち。人がまだ付けていない（未設定の）時だけ true にする
+      if(ya&&ya.ok===true&&Array.isArray(ya.deals)) ya.deals.forEach(function(x){ if(!x) return; var r=oneCar(D.pickups,x); if(!r) return; var dc=r.docs||{};
+          if(typeof x.aid4==='string'&&/^[0-9A-Za-z]{4}$/.test(x.aid4)&&r.aid4!==x.aid4) jobs.push(put('pickups',r.id,{aid4:x.aid4}));
+          var idp={}; ['real_name','city','yahoo_id'].forEach(function(k){ if(typeof x[k]==='string'&&x[k].trim()&&x[k].length<=40&&r[k]!==x[k].trim()) idp[k]=x[k].trim(); }); if(Object.keys(idp).length) jobs.push(put('pickups',r.id,idp));
+          if(x.docs_arrived!==true) return;
+          if(dc.juminhyo===undefined){ c.jumin++; var nd={juminhyo:true,plate:!!dc.plate}; jobs.push(put('pickups',r.id,{docs:{juminhyo:true},docs_at:(nd.juminhyo&&nd.plate)?new Date().toISOString():'',docs_src:'ヤフオク係'})); } });
+      else miss.push('書類到着');
+      // 新ナンバー着（請求書係の plate_arrived）→ 書類待ち。同じく未設定の時だけ
+      if(inv&&inv.ok===true&&Array.isArray(inv.cars)) inv.cars.forEach(function(x){ if(!x||x.plate_arrived!==true) return; var r=oneCar(D.pickups,x); if(!r) return; var dc=r.docs||{};
+          if(dc.plate===undefined){ c.plate++; var nd={juminhyo:!!dc.juminhyo,plate:true}; jobs.push(put('pickups',r.id,{docs:{plate:true},docs_at:(nd.juminhyo&&nd.plate)?new Date().toISOString():'',plate_src:'請求書係'})); } });
+      else miss.push('ナンバー着');
+      return Promise.all(jobs).then(function(){ return {c:c,miss:miss}; });
+    }).then(function(o){ var c=o.c; if(st) st.textContent='写しました：車検 新しく'+c.made+'・日時の変更'+c.moved+'／入庫 '+c.arr+'／住民票 着 '+c.jumin+'／新ナンバー 着 '+c.plate+(o.miss.length?'（読めなかった：'+o.miss.join('・')+'）':''); try{localStorage.setItem('sb-sync',String(Date.now()))}catch(e){} })
+      .catch(function(e){ if(st) st.textContent='写せませんでした：'+((e&&e.message)||(e&&e.code)||'わからない'); });
+  }
+  function startSync(){
+    Promise.all([window.claude.use('user'),window.claude.use('mcp')]).then(function(a){
+      var u=a[0], mcp=a[1]; if(!u||!mcp||!(u.isOwner&&u.isOwner())) return;           // 社長だけ
+      var box=$('syncbox'); if(box) box.hidden=false;
+      $('syncbtn').addEventListener('click',function(){ syncNow(mcp,'button'); });
+      var last=0; try{ last=+localStorage.getItem('sb-sync')||0 }catch(e){}
+      var wait=function(){ if(ready&&COLLS.every(function(x){return got[x]})){ if(Date.now()-last>10*60*1000) syncNow(mcp,'open'); } else setTimeout(wait,500); }; wait();
+    }).catch(function(){});
+  }
+  function start(){
+    if(!window.claude||!window.claude.use){ clearTimeout(timer); ready=true; $('lead').textContent='この画面は Claude の中で開くと使えます。'; render(); return; }
+    window.claude.use('db').then(function(d){
+      if(!d){ clearTimeout(timer); ready=true; $('lead').textContent='サインインすると一覧が出ます。'; $('addbox').hidden=true; render(); return; }
+      db=d; var bad=function(){ clearTimeout(timer); ready=true; $('lead').textContent='一覧を読みこめませんでした。「更新」を押してください。'; render(); };
+      COLLS.forEach(function(c){ db.collection(c).onSnapshot(function(s){ D[c]=s.docs.map(copy); got[c]=true; if(COLLS.every(function(x){return got[x]})){ ready=true; clearTimeout(timer); } render(); },bad); });
+      db.doc('meta/info').get().then(function(x){ if(x.exists){ meta=x.data(); render(); } }).catch(function(){});
+      startSync();
+    });
+  }
+  render(); start();
+})();
+</script>
+
 </body></html>
