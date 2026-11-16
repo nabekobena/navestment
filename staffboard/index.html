@@ -152,7 +152,7 @@ form .btn{grid-column:1/-1}
 <div class="wrap">
   <header>
     <div><h1>Staff Board</h1><p class="lead" id="lead">終わったらチェック。当日はグレーで残り、次の日に消えます。</p></div>
-    <div class="row" style="margin:0"><button class="btn" id="fullbtn" type="button" hidden>全画面</button><button class="btn" id="reload" type="button">更新</button></div>
+    <div class="row" style="margin:0"><button class="btn" id="fullbtn" type="button" hidden>全画面</button><button class="btn" id="reload" type="button">更新</button><small id="livest" style="margin-left:.5em;opacity:.6;font-size:11px"></small></div>
   </header>
   <div class="tabs" role="tablist">
     <button role="tab" id="tab-plan" aria-selected="true">引渡・来客<b id="n-plan">0</b></button>
@@ -195,29 +195,42 @@ form .btn{grid-column:1/-1}
   function merge(a,b){var o=isObj(a)?JSON.parse(JSON.stringify(a)):{};Object.keys(b||{}).forEach(function(k){o[k]=(isObj(b[k])&&isObj(o[k]))?merge(o[k],b[k]):b[k];});return o;}
   function snap(c){return {docs:(D[c]||[]).map(function(d){var x=JSON.parse(JSON.stringify(d));var id=x.id;delete x.id;return {id:id,data:function(){return x;}};})};}
   function emit(c){(L[c]||[]).forEach(function(f){try{f.ok(snap(c))}catch(e){}});}
-  var busy=false;
-  function get1(){return fetch(API,{method:'POST',body:JSON.stringify({a:'all'})}).then(function(r){return r.json()}).catch(function(){return fetch(API+'?a=all&t='+Date.now()).then(function(r){return r.json()})});}
+  // 120：通信には必ず時間切れを付ける（スマホで画面を消す・切りかえると、通信が返ってこないまま止まることがある）
+  var busy=false, busyAt=0, lastTry=0, lastOk=0, readN=0, doneSeq=0, readCtl=null, curP=Promise.resolve();
+  function tf(url,opt,ms){var ctl=null;try{ctl=new AbortController();}catch(e){} opt=opt||{}; if(ctl)opt.signal=ctl.signal; opt.cache='no-store';
+    var t=null, p=new Promise(function(ok,ng){t=setTimeout(function(){try{ctl&&ctl.abort()}catch(e){} ng(new Error('timeout'));},ms);
+      fetch(url,opt).then(function(r){return r.json()}).then(function(j){clearTimeout(t);ok(j);},function(e){clearTimeout(t);ng(e);});});
+    return {p:p,ctl:ctl};}
+  function get1(){var a=tf(API,{method:'POST',body:JSON.stringify({a:'all'})},12000);readCtl=a.ctl;return a.p.catch(function(e){if(e&&e.name==='AbortError')throw e;var b=tf(API+'?a=all&t='+Date.now(),{},12000);readCtl=b.ctl;return b.p;});}
   function getR(n){return get1().then(function(j){if(!j||!j.ok)throw new Error((j&&j.error)||'read');return j;}).catch(function(e){if(n>0)return new Promise(function(ok){setTimeout(ok,1500)}).then(function(){return getR(n-1)});throw e;});}
   // 110：まだ送り終わっていない直し（Q＝待ち行列、F＝いま送っている物）。読み直しはこれを上に重ねて、画面を古い中身で上書きしない
   var Q=[], F=null, W=[], flushT=null, sending=false, failN=0;
   function pendingFor(c){return W.concat(Q).concat(F?[F]:[]).filter(function(x){return x.c===c;});}
   function overlay(c,arr){var a=JSON.parse(JSON.stringify(arr||[]));pendingFor(c).forEach(function(x){var i=-1;a.forEach(function(d,k){if(d.id===x.id)i=k});
     if(x.a==='delete'){if(i>=0)a.splice(i,1);return;} var cur=i>=0?a[i]:{}; var n=x.a==='update'?merge(cur,x.d):JSON.parse(JSON.stringify(x.d||{})); n.id=x.id; if(i>=0)a[i]=n; else a.push(n);});return a;}
-  function pull(){if(busy||sending||Q.length||W.length)return Promise.resolve();busy=true;return getR(loaded?0:3).then(function(j){busy=false;
+  function liveMark(ok){var s=document.getElementById('livest');if(!s)return;var d=new Date(lastOk||Date.now());
+    s.textContent=ok?('自動 '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2)):'読み直し中…つながりを待っています';}
+  // 120：読み直しは、書き込みが残っていても止めない（まだ送っていない直しは上に重ねる）。読んでいる間に書き込みが終わった時だけ、その回を捨ててすぐ読み直す
+  function pull(force){
+    if(busy){ if(!force&&Date.now()-busyAt<25000) return curP; try{readCtl&&readCtl.abort()}catch(e){} }   // 25秒たっても返らない読みは打ち切る
+    busy=true; busyAt=lastTry=Date.now(); var my=++readN, seq0=doneSeq;
+    curP=getR(loaded?0:3).then(function(j){ if(my!==readN) return; busy=false;
     if(!j||!j.ok) throw new Error((j&&j.error)||'read');
-    if(sending||Q.length||W.length) return;       // 読んでいる間に押された＝今回の中身は使わない（送り終わってから読み直す）
+    if(doneSeq!==seq0){ setTimeout(function(){pull();},300); return; }   // 読んでいる間に書き込みが終わった＝古いかもしれないので使わない
     var nd=j.docs||{}; Object.keys(nd).forEach(function(c){nd[c]=overlay(c,nd[c]);}); var keys={}; Object.keys(nd).concat(Object.keys(L)).forEach(function(k){keys[k]=1});
-    Object.keys(keys).forEach(function(c){var s=JSON.stringify(nd[c]||[]); if(!loaded||s!==JSON.stringify(D[c]||[])){D[c]=nd[c]||[]; emit(c);} });
-    loaded=true;
-  }).catch(function(e){busy=false;Object.keys(L).forEach(function(c){(L[c]||[]).forEach(function(f){if(!loaded&&f.err)f.err(e)})});});}
-  function send(b){return fetch(API,{method:'POST',body:JSON.stringify(b)}).then(function(r){return r.json()}).then(function(j){if(!j||!j.ok)throw new Error((j&&j.error)||'write');return j;});}
+    Object.keys(keys).forEach(function(c){var s=JSON.stringify(nd[c]||[]); if(!loaded||s!==JSON.stringify(D[c]||[])){D[c]=JSON.parse(s); emit(c);} });
+    loaded=true; lastOk=Date.now(); liveMark(true);
+  }).catch(function(e){if(my!==readN)return; busy=false; liveMark(false); Object.keys(L).forEach(function(c){(L[c]||[]).forEach(function(f){if(!loaded&&f.err)f.err(e)})});});
+    return curP;}
+  function send(b){return tf(API,{method:'POST',body:JSON.stringify(b)},b.a==='add'?20000:15000).p.then(function(j){if(!j||!j.ok)throw new Error((j&&j.error)||'write');return j;});}
   function enqueue(x){var last=Q[Q.length-1];
     if(x.a==='update'&&last&&last.a==='update'&&last.c===x.c&&last.id===x.id){last.d=merge(last.d,x.d);}   // 同じ車の続けての直しは1つにまとめる
     else Q.push(x);
     clearTimeout(flushT); flushT=setTimeout(flush,700);}
-  function sendRetry(b,n){return send(b).catch(function(e){if(n<=0)throw e;return new Promise(function(ok){setTimeout(ok,(4-n)*800)}).then(function(){return sendRetry(b,n-1);});});}
-  function flush(){if(sending)return;var x=Q.shift();if(!x){sending=false;setTimeout(pull,400);return;}
-    sending=true;F=x;sendRetry({a:x.a,c:x.c,id:x.id,d:x.d},3).then(function(){F=null;sending=false;flush();})
+  function sendRetry(b,n){return send(b).catch(function(e){if(n<=0)throw e;if(b.a==='add'&&e&&e.message==='timeout')throw e;   // 足す時の時間切れは、二重に足さないようにやり直さない
+    return new Promise(function(ok){setTimeout(ok,(4-n)*800)}).then(function(){return sendRetry(b,n-1);});});}
+  function flush(){if(sending)return;var x=Q.shift();if(!x){sending=false;setTimeout(function(){pull();},400);return;}
+    sending=true;F=x;sendRetry({a:x.a,c:x.c,id:x.id,d:x.d},3).then(function(){F=null;sending=false;doneSeq++;flush();})
       .catch(function(e){F=null;sending=false;failN++;if(window.SBFAIL)window.SBFAIL(e);W.push(x);
         setTimeout(function(){var i=W.indexOf(x);if(i>=0){W.splice(i,1);Q.unshift(x);flush();}},10000);flush();});}   // それでもダメなら帯を出す。押した内容は画面に残したまま（W）、10秒後にもう一度送る
   function local(c,id,d,mode){var a=D[c]=D[c]||[],i=-1;a.forEach(function(x,k){if(x.id===id)i=k});var cur=i>=0?a[i]:{};var n=mode==='update'?merge(cur,d):JSON.parse(JSON.stringify(d||{}));n.id=id;if(i>=0)a[i]=n;else a.push(n);emit(c);}
@@ -229,16 +242,20 @@ form .btn{grid-column:1/-1}
   };}
   var db={doc:docRef,collection:function(c){return {
     onSnapshot:function(ok,err){(L[c]=L[c]||[]).push({ok:ok,err:err});if(loaded)ok(snap(c));return function(){};},
-    add:function(d){var go=function(){return sendRetry({a:'add',c:c,d:d},3).then(function(j){local(c,j.id,d,'set');return {id:j.id};});};
+    add:function(d){var go=function(){return sendRetry({a:'add',c:c,d:d},3).then(function(j){local(c,j.id,d,'set');doneSeq++;return {id:j.id};});};
       if(!sending&&!Q.length) return go(); return new Promise(function(ok,ng){var t=setInterval(function(){if(!sending&&!Q.length){clearInterval(t);go().then(ok,ng);}},200);});},
     doc:function(id){return docRef(c+'/'+id);}
   };}};
-  window.SBPULL=function(){ var b=document.getElementById('reload'); if(b){b.disabled=true;b.textContent='…';} pull().then(function(){ if(b){b.disabled=false;b.textContent='更新';} }); };
+  window.SBPULL=function(){ var b=document.getElementById('reload'); if(b){b.disabled=true;b.textContent='…';}
+    var back=function(){ if(b){b.disabled=false;b.textContent='更新';} }; var t=setTimeout(back,15000);   // 120：何があっても15秒でボタンを戻す（固まらない）
+    pull(true).then(function(){clearTimeout(t);back();},function(){clearTimeout(t);back();}); };
   window.claude={use:function(n){return Promise.resolve(n==='db'?db:null);}};
   window.SBPENDING=function(){return W.length+Q.length+(F?1:0);};
   window.addEventListener('beforeunload',function(e){if(W.length||Q.length||F){e.preventDefault();e.returnValue='';}});
-  pull(); setInterval(function(){if(!document.hidden)pull();},5000);
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)pull();});
+  // 120：1秒ごとに見て、前の読み直しから5秒たっていたら読み直す（スマホでタイマーが止まっても、戻った時にすぐ動く）
+  pull(); setInterval(function(){if(!document.hidden&&Date.now()-lastTry>=5000)pull();},1000);
+  var wake=function(){if(!document.hidden&&Date.now()-lastTry>=1000)pull(true);};   // 画面を戻した・点けた・つながった時はすぐ読み直す
+  document.addEventListener('visibilitychange',wake); window.addEventListener('pageshow',wake); window.addEventListener('focus',wake); window.addEventListener('online',wake);
 })();
 </script>
 
